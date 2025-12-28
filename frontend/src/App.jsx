@@ -1,10 +1,13 @@
+import Header from "./components/common/Header";
+import Home from "./pages/Home";
+
 function App() {
 
   return (
     <>
       <div>
-        <h1>RideConnect</h1>
-        <p>Frontend Baseline Ready.</p>
+        <Header />
+        <Home />
       </div>
     </>
   )
