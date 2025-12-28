@@ -1,9 +1,15 @@
+import { Link } from "react-router-dom"
+
+
 function Header(){
     return(
-        <header>
-            <h2>RideConnect</h2>
-        </header>
-    );
+        <nav>
+            <Link to="/">Home</Link> | {" "}
+            <Link to="/login">Login</Link> |{" "}
+            <Link to="/register">Register</Link> |{" "}
+            <Link to="/about">About</Link>
+        </nav>
+    )
 }
 
-export default Header;
+export default Header
