@@ -3,6 +3,8 @@ from fastapi import FastAPI
 from app.db.base import Base
 from app.db.session import engine
 from app.db.models import user
+from app.db.session import get_db
+
 
 app = FastAPI(title="RideConnect API")
 
