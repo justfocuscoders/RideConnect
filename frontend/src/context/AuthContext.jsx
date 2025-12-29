@@ -1,64 +1,73 @@
 import { createContext, useContext, useEffect, useState } from "react";
 
+/**
+ * AuthContext
+ * Holds authentication state for the entire app
+ */
 const AuthContext = createContext(null);
 
-export const AuthProvider = ({ children }) => {
+/**
+ * AuthProvider
+ * Wraps the app and provides auth state
+ */
+export function AuthProvider({ children }) {
+  const [token, setToken] = useState(null);
   const [user, setUser] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
 
+  /**
+   * Load token from localStorage on app start
+   */
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
+    const storedToken = localStorage.getItem("token");
 
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-      setIsAuthenticated(true);
+    if (storedToken) {
+      setToken(storedToken);
+      // user will be decoded later in STEP 1.3.3
     }
+
+    setLoading(false);
   }, []);
 
-  const login = (email, password) => {
-    // Mock user (temporary)
-    const mockUser = {
-      name: "RideConnect User",
-      email,
-    };
-
-    localStorage.setItem("user", JSON.stringify(mockUser));
-    setUser(mockUser);
-    setIsAuthenticated(true);
+  /**
+   * Login handler
+   * Called after successful API login
+   */
+  const login = (jwtToken) => {
+    localStorage.setItem("token", jwtToken);
+    setToken(jwtToken);
   };
 
+  /**
+   * Logout handler
+   * Clears auth state completely
+   */
   const logout = () => {
-    localStorage.removeItem("user");
+    localStorage.removeItem("token");
+    setToken(null);
     setUser(null);
-    setIsAuthenticated(false);
-  };
-
-  const register = (name, email, password) => {
-    const newUser = {
-      name,
-      email,
-    };
-
-    localStorage.setItem("user", JSON.stringify(newUser));
-    setUser(newUser);
-    setIsAuthenticated(true);
   };
 
   return (
     <AuthContext.Provider
       value={{
+        token,
         user,
-        isAuthenticated,
+        setUser,
         login,
         logout,
-        register,
+        loading,
+        isAuthenticated: !!token,
       }}
     >
       {children}
     </AuthContext.Provider>
   );
-};
+}
 
-export const useAuth = () => {
+/**
+ * Custom hook for consuming AuthContext
+ */
+export function useAuth() {
   return useContext(AuthContext);
-};
+}
