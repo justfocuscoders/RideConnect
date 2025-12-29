@@ -5,8 +5,10 @@ from app.db.session import get_db
 from app.db.repositories.user import create_user, get_user_by_email
 from app.schemas.user import UserCreate, UserResponse
 from app.schemas.auth import LoginRequest, TokenResponse
+from app.core.security import verify_password, create_access_token 
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
+
 
 @router.post("/login", response_model=TokenResponse)
 def login_user(
@@ -36,9 +38,14 @@ def login_user(
         "token_type": "bearer"
     }
 
+
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
-def register_user(user_in: UserCreate, db: Session = Depends(get_db)):
+def register_user(
+    user_in: UserCreate,
+    db: Session = Depends(get_db)
+):
     existing_user = get_user_by_email(db, user_in.email)
+
     if existing_user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
