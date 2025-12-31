@@ -14,8 +14,12 @@ class UserCreate(UserBase):
     password: str
 
 
-class UserOut(UserBase):
+class UserOut(BaseModel):
     id: int
+    email: EmailStr
+    name: Optional[str] = None
+    phone: Optional[str] = None
+    is_active: bool
     created_at: datetime
 
     class Config:
