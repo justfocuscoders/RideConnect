@@ -3,9 +3,9 @@ from sqlalchemy.orm import Session
 
 from app.db.session import get_db
 from app.db.repositories.user import create_user, get_user_by_email
-from app.schemas.user import UserCreate, UserResponse
+from app.schemas.user import UserCreate, UserOut
 from app.schemas.auth import LoginRequest, TokenResponse
-from app.core.security import verify_password, create_access_token 
+from app.core.security import verify_password, create_access_token
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -17,13 +17,7 @@ def login_user(
 ):
     user = get_user_by_email(db, login_data.email)
 
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid email or password"
-        )
-
-    if not verify_password(login_data.password, user.hashed_password):
+    if not user or not verify_password(login_data.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password"
@@ -39,7 +33,7 @@ def login_user(
     }
 
 
-@router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/register", response_model=UserOut, status_code=status.HTTP_201_CREATED)
 def register_user(
     user_in: UserCreate,
     db: Session = Depends(get_db)

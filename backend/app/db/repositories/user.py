@@ -17,3 +17,11 @@ def create_user(db: Session, user_in: UserCreate) -> User:
 
 def get_user_by_email(db: Session, email: str) -> User | None:
     return db.query(User).filter(User.email == email).first()
+
+
+def update_user(db: Session, user: User, data: dict):
+    for key, value in data.items():
+        setattr(user, key, value)
+    db.commit()
+    db.refresh(user)
+    return user

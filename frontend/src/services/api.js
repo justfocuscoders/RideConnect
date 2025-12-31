@@ -28,4 +28,14 @@ api.interceptors.response.use(
   }
 );
 
+// ✅ ADD THIS
+export const getCurrentUser = () => {
+  return api.get("/users/me");
+};
+
+// Existing export
+export const updateProfile = (data) => {
+  return api.put("/users/me", data);
+};
+
 export default api;
