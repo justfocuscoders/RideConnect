@@ -1,12 +1,15 @@
 import { useEffect, useState } from "react";
 import api from "../services/api";
+import { useNavigate } from "react-router-dom";
 
 function Profile() {
+  const navigate = useNavigate();
+
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // NEW STATES FOR EDITING
+  // Edit mode states
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -15,7 +18,7 @@ function Profile() {
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState("");
 
-  // FETCH PROFILE
+  // Fetch profile
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -37,38 +40,45 @@ function Profile() {
     fetchProfile();
   }, []);
 
-  // HANDLE FORM SUBMIT
+  // Handle submit
   const handleSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  if (!formData.name.trim() && !formData.phone.trim()) {
-    setError("Please update at least one field");
-    return;
-  }
+    // At least one field must be updated
+    if (!formData.name.trim() && !formData.phone.trim()) {
+      setError("Please update at least one field");
+      return;
+    }
 
-  setSaving(true);
-  setError("");
-  setSuccess("");
+    setSaving(true);
+    setError("");
+    setSuccess("");
 
-  try {
-    const response = await api.put("/users/me", formData);
-
-    setUser(response.data); // refresh UI
-    setSuccess("Profile updated successfully");
-    setIsEditing(false);
-  } catch (err) {
-    setError("Failed to update profile");
-  } finally {
-    setSaving(false);
-  }
-};
-
+    try {
+      const response = await api.put("/users/me", formData);
+      setUser(response.data);
+      setSuccess("Profile updated successfully");
+      setIsEditing(false);
+    } catch (err) {
+      setError("Failed to update profile");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   if (loading) return <p>Loading profile...</p>;
-  if (error && !isEditing) return <p style={{ color: "red" }}>{error}</p>;
+  if (!user) return <p>Unable to load profile.</p>;
 
   return (
     <div style={{ padding: "20px", maxWidth: "400px" }}>
+      {/* Back Button */}
+      <button
+        onClick={() => navigate("/dashboard", { state: { refresh: true } })}
+        style={{ marginBottom: "15px" }}
+      >
+        ← Back to Dashboard
+      </button>
+
       <h2>User Profile</h2>
 
       {/* VIEW MODE */}
@@ -82,7 +92,11 @@ function Profile() {
             Edit Profile
           </button>
 
-          {success && <p style={{ color: "green" }}>{success}</p>}
+          {success && (
+            <p style={{ color: "green", marginTop: "10px" }}>
+              {success}
+            </p>
+          )}
         </>
       )}
 
@@ -117,23 +131,26 @@ function Profile() {
             </button>
 
             <button
-  type="button"
-  style={{ marginLeft: "10px" }}
-  onClick={() => {
-    setFormData({
-      name: user.name || "",
-      phone: user.phone || "",
-    });
-    setIsEditing(false);
-    setError("");
-  }}
->
-  Cancel
-</button>
-
+              type="button"
+              style={{ marginLeft: "10px" }}
+              onClick={() => {
+                setFormData({
+                  name: user.name || "",
+                  phone: user.phone || "",
+                });
+                setIsEditing(false);
+                setError("");
+              }}
+            >
+              Cancel
+            </button>
           </div>
 
-          {error && <p style={{ color: "red" }}>{error}</p>}
+          {error && (
+            <p style={{ color: "red", marginTop: "10px" }}>
+              {error}
+            </p>
+          )}
         </form>
       )}
     </div>

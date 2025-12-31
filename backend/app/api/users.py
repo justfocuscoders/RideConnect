@@ -6,6 +6,9 @@ from app.api.dependencies import get_current_user
 from app.db.models.user import User
 from app.db.repositories.user import update_user
 from app.schemas.user import UserUpdate, UserOut
+from pydantic import BaseModel, EmailStr
+from typing import Optional
+from datetime import datetime
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
