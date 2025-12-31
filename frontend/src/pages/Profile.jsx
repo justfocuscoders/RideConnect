@@ -1,54 +1,38 @@
-import { useEffect, useState } from "react"
-import { getCurrentUser, updateProfile } from "../services/api"
+import { useEffect, useState } from "react";
+import api from "../services/api";
 
 function Profile() {
-  const [form, setForm] = useState({ name: "", phone: "" })
-  const [loading, setLoading] = useState(false)
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    getCurrentUser().then(res => {
-      setForm({
-        name: res.data.name || "",
-        phone: res.data.phone || "",
-      })
-    })
-  }, [])
+    const fetchProfile = async () => {
+      try {
+        const response = await api.get("/users/me");
+        setUser(response.data);
+      } catch (err) {
+        setError("Failed to load profile");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value })
-  }
+    fetchProfile();
+  }, []);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    setLoading(true)
-    await updateProfile(form)
-    setLoading(false)
-    alert("Profile updated successfully")
-  }
+  if (loading) return <p>Loading profile...</p>;
+  if (error) return <p style={{ color: "red" }}>{error}</p>;
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h2>Update Profile</h2>
+    <div style={{ padding: "20px" }}>
+      <h2>User Profile</h2>
 
-      <input
-        name="name"
-        placeholder="Name"
-        value={form.name}
-        onChange={handleChange}
-      />
-
-      <input
-        name="phone"
-        placeholder="Phone"
-        value={form.phone}
-        onChange={handleChange}
-      />
-
-      <button disabled={loading}>
-        {loading ? "Saving..." : "Save"}
-      </button>
-    </form>
-  )
+      <p><strong>Email:</strong> {user.email}</p>
+      <p><strong>Name:</strong> {user.name || "Not set"}</p>
+      <p><strong>Phone:</strong> {user.phone || "Not set"}</p>
+    </div>
+  );
 }
 
-export default Profile
+export default Profile;
