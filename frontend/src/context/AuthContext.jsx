@@ -1,20 +1,21 @@
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { jwtDecode } from "jwt-decode";
+import api from "../services/api";
 
 const AuthContext = createContext(null);
 
 // Helper: calculate remaining time before token expiry
 const calculateRemainingTime = (exp) => {
-  const currentTime = Date.now();        // ms
-  const expiryTime = exp * 1000;         // convert seconds → ms
+  const currentTime = Date.now(); // ms
+  const expiryTime = exp * 1000; // sec → ms
   return expiryTime - currentTime;
 };
 
 export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem("token"));
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // store logout timer reference
   const logoutTimerRef = useRef(null);
 
   const logout = () => {
@@ -22,20 +23,35 @@ export const AuthProvider = ({ children }) => {
       clearTimeout(logoutTimerRef.current);
     }
 
+    localStorage.removeItem("token");
     setToken(null);
     setUser(null);
-    localStorage.removeItem("token");
+    setLoading(false);
   };
 
   const login = (newToken) => {
-    setToken(newToken);
     localStorage.setItem("token", newToken);
+    setToken(newToken);
   };
 
-  // Decode token & handle expiry whenever token changes
+  // Fetch full user profile from backend
+  const fetchUser = async () => {
+    try {
+      const res = await api.get("/users/me");
+      setUser(res.data);
+    } catch (error) {
+      console.error("Failed to fetch user profile", error);
+      logout();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle token decoding + expiry + user fetch
   useEffect(() => {
     if (!token) {
       setUser(null);
+      setLoading(false);
       return;
     }
 
@@ -43,25 +59,21 @@ export const AuthProvider = ({ children }) => {
       const decoded = jwtDecode(token);
       const remainingTime = calculateRemainingTime(decoded.exp);
 
-      // Token already expired
       if (remainingTime <= 0) {
         logout();
         return;
       }
 
-      setUser({
-        email: decoded.sub,
-        exp: decoded.exp,
-      });
-
-      // Auto logout when token expires
+      // Auto logout on expiry
       logoutTimerRef.current = setTimeout(logout, remainingTime);
+
+      // Fetch full user data ONCE
+      fetchUser();
     } catch (error) {
       console.error("Invalid token");
       logout();
     }
 
-    // cleanup on token change/unmount
     return () => {
       if (logoutTimerRef.current) {
         clearTimeout(logoutTimerRef.current);
@@ -74,9 +86,12 @@ export const AuthProvider = ({ children }) => {
       value={{
         token,
         user,
+        setUser,          // IMPORTANT: for instant profile updates
+        loading,
         isAuthenticated: !!token,
         login,
         logout,
+        refreshUser: fetchUser,
       }}
     >
       {children}
