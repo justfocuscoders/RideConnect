@@ -1,21 +1,34 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from app.db.session import get_db
 from app.api.dependencies import get_current_user
 from app.db.models.user import User
+from app.schemas.user import UserOut, UserUpdate
 from app.db.repositories.user import update_user
-from app.schemas.user import UserUpdate, UserOut
-from pydantic import BaseModel, EmailStr
-from typing import Optional
-from datetime import datetime
+from app.db.session import get_db
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
 
 @router.get("/me", response_model=UserOut)
-def read_me(current_user: User = Depends(get_current_user)):
-    return current_user
+def read_current_user(current_user: User = Depends(get_current_user)):
+    missing = []
+
+    if not current_user.name:
+        missing.append("name")
+    if not current_user.phone:
+        missing.append("phone")
+
+    return UserOut(
+        id=current_user.id,
+        email=current_user.email,
+        name=current_user.name,
+        phone=current_user.phone,
+        is_active=current_user.is_active,
+        created_at=current_user.created_at,
+        profile_complete=len(missing) == 0,
+        missing_fields=missing,
+    )
 
 
 @router.put("/me", response_model=UserOut)
@@ -24,8 +37,25 @@ def update_me(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    return update_user(
+    updated_user = update_user(
         db,
         current_user,
-        payload.dict(exclude_unset=True)
+        payload.dict(exclude_unset=True),
+    )
+
+    missing = []
+    if not updated_user.name:
+        missing.append("name")
+    if not updated_user.phone:
+        missing.append("phone")
+
+    return UserOut(
+        id=updated_user.id,
+        email=updated_user.email,
+        name=updated_user.name,
+        phone=updated_user.phone,
+        is_active=updated_user.is_active,
+        created_at=updated_user.created_at,
+        profile_complete=len(missing) == 0,
+        missing_fields=missing,
     )

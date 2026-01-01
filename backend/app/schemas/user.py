@@ -1,6 +1,6 @@
 from pydantic import BaseModel, EmailStr
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 
 
 class UserBase(BaseModel):
@@ -21,6 +21,9 @@ class UserOut(BaseModel):
     phone: Optional[str] = None
     is_active: bool
     created_at: datetime
+
+    profile_complete: bool
+    missing_fields: List[str]
 
     class Config:
         from_attributes = True

@@ -8,7 +8,7 @@ from app.api.users import router as users_router
 
 app = FastAPI(title="RideConnect API")
 
-# ✅ CORS MUST COME BEFORE ROUTERS
+# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -20,7 +20,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ✅ THEN routers
+# Routers
 app.include_router(auth_router)
 app.include_router(users_router)
 

@@ -4,15 +4,19 @@ from app.schemas.user import UserCreate
 from app.core.security import get_password_hash
 
 
-def create_user(db: Session, user_in: UserCreate) -> User:
+def create_user(db: Session, user_in: UserCreate):
     user = User(
         email=user_in.email,
-        hashed_password=get_password_hash(user_in.password)
+        name=user_in.name,          # ✅ ADD
+        phone=user_in.phone,        # ✅ ADD
+        hashed_password=get_password_hash(user_in.password),
+        is_active=user_in.is_active,
     )
     db.add(user)
     db.commit()
     db.refresh(user)
     return user
+
 
 
 def get_user_by_email(db: Session, email: str) -> User | None:
