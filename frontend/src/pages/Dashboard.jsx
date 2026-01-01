@@ -1,13 +1,10 @@
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { getProfileProgress } from "../utils/profileProgress";
 import "../assets/styles/dashboard.css";
 
 function Dashboard() {
-  const { user, isProfileComplete } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
-  const progress = getProfileProgress(user);
-
 
   /* =========================
      LOADING / INITIAL STATE
@@ -21,6 +18,8 @@ function Dashboard() {
     );
   }
 
+  const isProfileComplete = user.profile_complete;
+
   return (
     <div className="dashboard-page">
 
@@ -28,32 +27,31 @@ function Dashboard() {
          PROFILE COMPLETION BANNER
          ========================= */}
       {!isProfileComplete && (
-  <div className="dashboard-banner">
-    <div className="banner-text">
-      <h4>
-        Profile incomplete ({progress.completed}/{progress.total})
-      </h4>
+        <div className="dashboard-banner">
+          <div className="banner-text">
+            <h4>
+              Profile incomplete ({user.missing_fields.length}/3)
+            </h4>
 
-      <p>
-        Please complete the following to unlock all features:
-      </p>
+            <p>
+              Please complete the following to unlock all features:
+            </p>
 
-      <ul className="missing-list">
-        {progress.missing.map((field) => (
-          <li key={field}>{field}</li>
-        ))}
-      </ul>
-    </div>
+            <ul className="missing-list">
+              {user.missing_fields.map((field) => (
+                <li key={field}>{field}</li>
+              ))}
+            </ul>
+          </div>
 
-    <button
-      className="btn-primary"
-      onClick={() => navigate("/profile")}
-    >
-      Complete Profile
-    </button>
-  </div>
-)}
-
+          <button
+            className="btn-primary"
+            onClick={() => navigate("/profile")}
+          >
+            Complete Profile
+          </button>
+        </div>
+      )}
 
       {/* =========================
          MAIN DASHBOARD CONTENT
@@ -107,11 +105,10 @@ function Dashboard() {
             </button>
 
             {!isProfileComplete && (
-  <small className="helper-text">
-    Complete your profile to book a ride
-  </small>
-)}
-
+              <small className="helper-text">
+                Complete your profile to book a ride
+              </small>
+            )}
           </div>
 
           {/* Ride History */}
