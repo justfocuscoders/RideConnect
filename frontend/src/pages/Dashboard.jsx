@@ -1,10 +1,13 @@
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { getProfileProgress } from "../utils/profileProgress";
 import "../assets/styles/dashboard.css";
 
 function Dashboard() {
   const { user, isProfileComplete } = useAuth();
   const navigate = useNavigate();
+  const progress = getProfileProgress(user);
+
 
   /* =========================
      LOADING / INITIAL STATE
@@ -25,22 +28,32 @@ function Dashboard() {
          PROFILE COMPLETION BANNER
          ========================= */}
       {!isProfileComplete && (
-        <div className="dashboard-banner">
-          <div className="banner-text">
-            <h4>Complete your profile</h4>
-            <p>
-              Finish setting up your profile to unlock all ride features.
-            </p>
-          </div>
+  <div className="dashboard-banner">
+    <div className="banner-text">
+      <h4>
+        Profile incomplete ({progress.completed}/{progress.total})
+      </h4>
 
-          <button
-            className="btn-primary"
-            onClick={() => navigate("/profile")}
-          >
-            Complete Profile
-          </button>
-        </div>
-      )}
+      <p>
+        Please complete the following to unlock all features:
+      </p>
+
+      <ul className="missing-list">
+        {progress.missing.map((field) => (
+          <li key={field}>{field}</li>
+        ))}
+      </ul>
+    </div>
+
+    <button
+      className="btn-primary"
+      onClick={() => navigate("/profile")}
+    >
+      Complete Profile
+    </button>
+  </div>
+)}
+
 
       {/* =========================
          MAIN DASHBOARD CONTENT
@@ -94,10 +107,11 @@ function Dashboard() {
             </button>
 
             {!isProfileComplete && (
-              <small className="helper-text">
-                Complete your profile to enable this action
-              </small>
-            )}
+  <small className="helper-text">
+    Complete your profile to book a ride
+  </small>
+)}
+
           </div>
 
           {/* Ride History */}
