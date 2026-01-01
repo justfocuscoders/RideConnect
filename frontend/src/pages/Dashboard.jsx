@@ -2,33 +2,24 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "../assets/styles/dashboard.css";
 
-
 function Dashboard() {
-
-  
   const { user, isProfileComplete } = useAuth();
   const navigate = useNavigate();
 
+  /* =========================
+     LOADING / INITIAL STATE
+     ========================= */
   if (!user) {
-  return (
-    <div className="dashboard-page">
-      <div className="card skeleton-card" />
-      <div className="card skeleton-card" />
-    </div>
-  );
-}
-
-{!isProfileComplete && (
-  <small className="helper-text">
-    Complete your profile to enable this action
-  </small>
-)}
-
-
+    return (
+      <div className="dashboard-page">
+        <div className="card skeleton-card" />
+        <div className="card skeleton-card" />
+      </div>
+    );
+  }
 
   return (
     <div className="dashboard-page">
-      
 
       {/* =========================
          PROFILE COMPLETION BANNER
@@ -41,6 +32,7 @@ function Dashboard() {
               Finish setting up your profile to unlock all ride features.
             </p>
           </div>
+
           <button
             className="btn-primary"
             onClick={() => navigate("/profile")}
@@ -61,17 +53,17 @@ function Dashboard() {
 
           <div className="profile-row">
             <span>Name</span>
-            <strong>{user?.name || "Not provided"}</strong>
+            <strong>{user.name || "Not provided"}</strong>
           </div>
 
           <div className="profile-row">
             <span>Email</span>
-            <strong>{user?.email}</strong>
+            <strong>{user.email}</strong>
           </div>
 
           <div className="profile-row">
             <span>Phone</span>
-            <strong>{user?.phone || "Not provided"}</strong>
+            <strong>{user.phone || "Not provided"}</strong>
           </div>
 
           <button
@@ -85,6 +77,7 @@ function Dashboard() {
         {/* -------- Action Cards -------- */}
         <div className="action-cards">
 
+          {/* Book Ride */}
           <div
             className={`card action-card ${
               !isProfileComplete ? "disabled" : ""
@@ -92,31 +85,40 @@ function Dashboard() {
           >
             <h4>Book a Ride</h4>
             <p>Request a new ride instantly.</p>
+
             <button
               className="btn-primary"
               disabled={!isProfileComplete}
             >
               Book Ride
             </button>
+
+            {!isProfileComplete && (
+              <small className="helper-text">
+                Complete your profile to enable this action
+              </small>
+            )}
           </div>
 
+          {/* Ride History */}
           <div className="card action-card">
             <h4>Ride History</h4>
             <p>View your previous rides.</p>
+
             <button className="btn-secondary">
               View History
             </button>
           </div>
 
+          {/* Saved Locations */}
           <div className="card action-card disabled">
             <h4>Saved Locations</h4>
             <p>Coming soon</p>
+
             <button className="btn-secondary" disabled>
               Coming Soon
             </button>
           </div>
-
-          
 
         </div>
       </section>
