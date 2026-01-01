@@ -2,12 +2,33 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "../assets/styles/dashboard.css";
 
+
 function Dashboard() {
+
+  
   const { user, isProfileComplete } = useAuth();
   const navigate = useNavigate();
 
+  if (!user) {
   return (
     <div className="dashboard-page">
+      <div className="card skeleton-card" />
+      <div className="card skeleton-card" />
+    </div>
+  );
+}
+
+{!isProfileComplete && (
+  <small className="helper-text">
+    Complete your profile to enable this action
+  </small>
+)}
+
+
+
+  return (
+    <div className="dashboard-page">
+      
 
       {/* =========================
          PROFILE COMPLETION BANNER
@@ -94,6 +115,8 @@ function Dashboard() {
               Coming Soon
             </button>
           </div>
+
+          
 
         </div>
       </section>
