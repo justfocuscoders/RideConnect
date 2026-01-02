@@ -8,6 +8,10 @@ import Register from "./pages/Register";
 import About from "./pages/About";
 import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
+import BookRide from "./pages/BookRide";
+import RideSummary from "./pages/RideSummary";
+import RideSuccess from "./pages/RideSuccess";
+
 
 
 function App() {
@@ -19,6 +23,11 @@ function App() {
         <Route path="login" element={<Login />} />
         <Route path="register" element={<Register />} />
         <Route path="about" element={<About />} />
+        <Route path="/book-ride" element={<BookRide />} />
+        <Route path="/ride-summary" element={<RideSummary />} />
+        <Route path="/ride-success" element={<RideSuccess />} />
+
+
 
         {/* Protected */}
         <Route

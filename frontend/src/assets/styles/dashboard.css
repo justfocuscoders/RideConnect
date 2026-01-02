@@ -164,3 +164,25 @@ button:focus {
 .dashboard-banner h4 {
   margin-bottom: 4px;
 }
+
+/* =========================
+   DASHBOARD HEADER
+   ========================= */
+
+.dashboard-header {
+  margin-bottom: 24px;
+}
+
+.dashboard-title {
+  font-size: 24px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.dashboard-subtitle {
+  margin-top: 4px;
+  color: #666;
+  font-size: 14px;
+}
+
+

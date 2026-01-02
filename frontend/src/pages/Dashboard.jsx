@@ -6,9 +6,6 @@ function Dashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  /* =========================
-     LOADING / INITIAL STATE
-     ========================= */
   if (!user) {
     return (
       <div className="dashboard-page">
@@ -24,28 +21,36 @@ function Dashboard() {
     <div className="dashboard-page">
 
       {/* =========================
-         PROFILE COMPLETION BANNER
+         DASHBOARD HEADER
+         ========================= */}
+      <div className="dashboard-header">
+        <h2 className="dashboard-title">Dashboard</h2>
+        <p className="dashboard-subtitle">
+          Welcome back, {user.name}
+        </p>
+      </div>
+
+      {/* =========================
+         PROFILE COMPLETION CARD
          ========================= */}
       {!isProfileComplete && (
-        <div className="dashboard-banner">
-          <div className="banner-text">
-            <h4>
-              Profile incomplete ({user.missing_fields.length}/3)
-            </h4>
+        <div className="profile-card warning">
+          <h4 className="profile-card-title">
+            Complete your profile
+          </h4>
 
-            <p>
-              Please complete the following to unlock all features:
-            </p>
+          <p className="profile-card-text">
+            Finish the following to unlock all features:
+          </p>
 
-            <ul className="missing-list">
-              {user.missing_fields.map((field) => (
-                <li key={field}>{field}</li>
-              ))}
-            </ul>
-          </div>
+          <ul className="profile-missing-list">
+            {user.missing_fields.map((field) => (
+              <li key={field}>{field}</li>
+            ))}
+          </ul>
 
           <button
-            className="btn-primary"
+            className="primary-btn"
             onClick={() => navigate("/profile")}
           >
             Complete Profile
@@ -100,6 +105,7 @@ function Dashboard() {
             <button
               className="btn-primary"
               disabled={!isProfileComplete}
+              onClick={() => navigate("/book-ride")}
             >
               Book Ride
             </button>
@@ -112,12 +118,12 @@ function Dashboard() {
           </div>
 
           {/* Ride History */}
-          <div className="card action-card">
+          <div className="card action-card disabled">
             <h4>Ride History</h4>
             <p>View your previous rides.</p>
 
-            <button className="btn-secondary">
-              View History
+            <button className="btn-secondary" disabled>
+              Coming Soon
             </button>
           </div>
 

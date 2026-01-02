@@ -9,7 +9,7 @@ class User(Base):
     email = Column(String(255), unique=True, index=True, nullable=False)
     hashed_password = Column(String(255), nullable=False)
 
-    name = Column(String(100), nullable=True)     # ✅ FIXED
+    name = Column(String(255), nullable=True)     # ✅ FIXED
     phone = Column(String(20), nullable=True)     # ✅ FIXED
 
     is_active = Column(Boolean, default=True)
