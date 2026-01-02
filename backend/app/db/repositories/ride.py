@@ -27,3 +27,6 @@ def get_all_rides(db: Session) -> List[Ride]:
         .order_by(Ride.created_at.desc())
         .all()
     )
+
+def get_ride_by_id(db: Session, ride_id: int):
+    return db.query(Ride).filter(Ride.id == ride_id).first()
