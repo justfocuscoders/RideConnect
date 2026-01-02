@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from datetime import datetime
+from enum import Enum
 
 
 class RideCreate(BaseModel):
@@ -18,3 +19,14 @@ class RideOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+class RideStatus(str, Enum):
+    requested = "requested"
+    accepted = "accepted"
+    in_progress = "in_progress"
+    completed = "completed"
+    cancelled = "cancelled"
+
+
+class RideStatusUpdate(BaseModel):
+    status: RideStatus

@@ -11,6 +11,11 @@ from fastapi import HTTPException, status
 from app.db.repositories.ride import get_ride_by_id
 from app.schemas.ride import RideOut
 
+from fastapi import APIRouter, Depends, HTTPException
+from app.api.dependencies import get_db, get_current_user
+from app.schemas.ride import RideStatusUpdate
+from app.db.repositories.ride import update_ride_status
+
 router = APIRouter(prefix="/rides", tags=["Rides"])
 
 
@@ -44,5 +49,19 @@ def read_ride(
     # Optional authorization guard (enable if required)
     # if ride.user_id != current_user.id:
     #     raise HTTPException(status_code=403, detail="Not authorized")
+
+    return ride
+
+@router.patch("/{ride_id}/status")
+def update_status(
+    ride_id: int,
+    payload: RideStatusUpdate,
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user),
+):
+    ride = update_ride_status(db, ride_id, payload.status)
+
+    if not ride:
+        raise HTTPException(status_code=404, detail="Ride not found")
 
     return ride

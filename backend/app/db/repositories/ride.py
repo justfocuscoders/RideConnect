@@ -30,3 +30,14 @@ def get_all_rides(db: Session) -> List[Ride]:
 
 def get_ride_by_id(db: Session, ride_id: int):
     return db.query(Ride).filter(Ride.id == ride_id).first()
+
+
+def update_ride_status(db: Session, ride_id: int, status: str):
+    ride = db.query(Ride).filter(Ride.id == ride_id).first()
+    if not ride:
+        return None
+
+    ride.status = status
+    db.commit()
+    db.refresh(ride)
+    return ride
