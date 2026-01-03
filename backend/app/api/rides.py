@@ -5,6 +5,7 @@ from typing import List
 from app.db.session import get_db
 from app.api.dependencies import get_current_user
 from app.core.validators import validate_status_transition
+from app.core.ride_status import ALLOWED_STATUS_TRANSITIONS
 
 from app.schemas.ride import (
     RideCreate,
@@ -108,3 +109,51 @@ def update_ride_status_endpoint(
 
 
     return updated_ride
+
+
+# --------------------------------------------------
+# Cancel
+# --------------------------------------------------
+
+@router.patch("/{ride_id}/cancel")
+def cancel_ride(
+    ride_id: int,
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user),
+):
+    # 1. Ride exists
+    ride = get_ride_by_id(db, ride_id)
+    if not ride:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Ride not found",
+        )
+
+    # 2. Ownership check
+    if ride.user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You are not authorized to cancel this ride",
+        )
+
+    # 3. Terminal state protection
+    if ride.status in ("completed", "cancelled"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Ride is already {ride.status} and cannot be cancelled",
+        )
+
+    # 4. Transition validation
+    if "cancelled" not in ALLOWED_STATUS_TRANSITIONS.get(ride.status, set()):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Ride cannot be cancelled when status is '{ride.status}'",
+        )
+
+    # 5. Update (✅ FIXED LINE)
+    updated_ride = update_ride_status(db, ride.id, "cancelled")
+
+    return {
+        "id": updated_ride.id,
+        "status": updated_ride.status,
+    }
