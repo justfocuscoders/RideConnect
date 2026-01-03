@@ -4,6 +4,7 @@ from typing import List
 
 from app.db.session import get_db
 from app.api.dependencies import get_current_user
+from app.core.validators import validate_status_transition
 
 from app.schemas.ride import (
     RideCreate,
@@ -28,13 +29,13 @@ router = APIRouter(prefix="/rides", tags=["Rides"])
 def create_new_ride(
     ride_data: RideCreate,
     db: Session = Depends(get_db),
-    current_user = Depends(get_current_user),
+    current_user=Depends(get_current_user),
 ):
     return create_ride(db, ride_data, current_user.id)
 
 
 # --------------------------------------------------
-# LIST RIDES (unchanged for now)
+# LIST RIDES
 # --------------------------------------------------
 @router.get("", response_model=List[RideOut])
 def list_rides(db: Session = Depends(get_db)):
@@ -48,7 +49,7 @@ def list_rides(db: Session = Depends(get_db)):
 def read_ride(
     ride_id: int,
     db: Session = Depends(get_db),
-    current_user = Depends(get_current_user),
+    current_user=Depends(get_current_user),
 ):
     ride = get_ride_by_id(db, ride_id)
 
@@ -58,7 +59,6 @@ def read_ride(
             detail="Ride not found",
         )
 
-    # ✅ Ownership check
     if ride.user_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -69,31 +69,42 @@ def read_ride(
 
 
 # --------------------------------------------------
-# UPDATE RIDE STATUS (OWNERSHIP ENFORCED)
+# UPDATE RIDE STATUS (OWNERSHIP + TRANSITION RULES)
 # --------------------------------------------------
 @router.patch("/{ride_id}/status", response_model=RideOut)
-def update_status(
+def update_ride_status_endpoint(
     ride_id: int,
-    payload: RideStatusUpdate,
+    status_update: RideStatusUpdate,
     db: Session = Depends(get_db),
-    current_user = Depends(get_current_user),
+    current_user=Depends(get_current_user),
 ):
+    # 1️⃣ Fetch ride
     ride = get_ride_by_id(db, ride_id)
-
     if not ride:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Ride not found",
         )
 
-    # ✅ Ownership check
+    # 2️⃣ Ownership authorization (STEP 3.2.1)
     if ride.user_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized",
+            detail="Not authorized to update this ride",
         )
 
-    # ❗ Status transition rules will be added in STEP 3.2.2
-    ride = update_ride_status(db, ride_id, payload.status)
+    # 3️⃣ Status transition validation (STEP 3.2.2) ✅ FIXED
+    validate_status_transition(
+        ride.status,
+        status_update.status.value
+    )
 
-    return ride
+    # 4️⃣ Persist update (repository unchanged) ✅ FIXED
+    updated_ride = update_ride_status(
+    db,
+    ride.id,
+    status_update.status.value
+)
+
+
+    return updated_ride
