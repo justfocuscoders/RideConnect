@@ -41,3 +41,53 @@ def update_ride_status(db: Session, ride_id: int, status: str):
     db.commit()
     db.refresh(ride)
     return ride
+
+def start_ride_as_driver(db: Session, ride_id: int, driver_id: int):
+    ride = db.query(Ride).filter(Ride.id == ride_id).first()
+    if not ride:
+        return None, "Ride not found"
+
+    if ride.driver_id != driver_id:
+        return None, "Not authorized for this ride"
+
+    if ride.status != "accepted":
+        return None, "Ride cannot be started"
+
+    ride.status = "in_progress"
+    db.commit()
+    db.refresh(ride)
+    return ride, None
+
+
+def complete_ride_as_driver(db: Session, ride_id: int, driver_id: int):
+    ride = db.query(Ride).filter(Ride.id == ride_id).first()
+    if not ride:
+        return None, "Ride not found"
+
+    if ride.driver_id != driver_id:
+        return None, "Not authorized for this ride"
+
+    if ride.status != "in_progress":
+        return None, "Ride cannot be completed"
+
+    ride.status = "completed"
+    db.commit()
+    db.refresh(ride)
+    return ride, None
+
+def accept_ride_as_driver(db: Session, ride_id: int, driver_id: int):
+    ride = db.query(Ride).filter(Ride.id == ride_id).first()
+    if not ride:
+        return None, "Ride not found"
+
+    if ride.status != "requested":
+        return None, "Ride cannot be accepted"
+
+    if ride.driver_id is not None:
+        return None, "Ride already assigned"
+
+    ride.driver_id = driver_id
+    ride.status = "accepted"
+    db.commit()
+    db.refresh(ride)
+    return ride, None

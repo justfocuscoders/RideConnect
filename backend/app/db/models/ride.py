@@ -1,6 +1,10 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
-from sqlalchemy.sql import func
+from datetime import datetime
+
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
+from sqlalchemy.orm import relationship
+
 from app.db.base import Base
+
 
 class Ride(Base):
     __tablename__ = "rides"
@@ -8,11 +12,16 @@ class Ride(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
 
-    pickup_location = Column(String, nullable=False)
-    drop_location = Column(String, nullable=False)
+    driver_id = Column(
+        Integer,
+        ForeignKey("drivers.id", ondelete="SET NULL"),
+        nullable=True,
+    )
 
-    status = Column(String, default="requested")
-    
-    estimated_fare = Column(Integer, default=0)
+    pickup_location = Column(String(255), nullable=False)
+    drop_location = Column(String(255), nullable=False)
+    status = Column(String(50), nullable=False)
+    estimated_fare = Column(Integer, nullable=False, default=0)
+    created_at = Column(DateTime, default=datetime.utcnow)
 
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    driver = relationship("Driver", backref="rides")

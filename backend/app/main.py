@@ -6,6 +6,8 @@ from app.db.session import engine
 from app.api.auth import router as auth_router
 from app.api.users import router as users_router
 from app.api.rides import router as rides_router
+from app.api.driver import router as driver_router
+
 
 app = FastAPI(title="RideConnect API")
 
@@ -25,6 +27,7 @@ app.add_middleware(
 app.include_router(auth_router)
 app.include_router(users_router)
 app.include_router(rides_router)
+app.include_router(driver_router)
 
 Base.metadata.create_all(bind=engine)
 
