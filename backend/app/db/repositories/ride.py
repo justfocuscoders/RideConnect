@@ -1,16 +1,31 @@
-from sqlalchemy.orm import Session
 from typing import List
+from sqlalchemy.orm import Session
 
 from app.db.models.ride import Ride
 from app.schemas.ride import RideCreate
+from app.services.payments import create_payment
+
+# Locked pricing rule
+COST_PER_KM = 13
 
 
+# =========================
+# CREATE RIDE (PASSENGER)
+# =========================
 def create_ride(db: Session, ride_data: RideCreate, user_id: int) -> Ride:
+    """
+    Creates a new ride request.
+    Fare is calculated automatically based on distance.
+    """
+
+    estimated_fare = int(ride_data.distance_km * COST_PER_KM)
+
     ride = Ride(
         pickup_location=ride_data.pickup_location,
         drop_location=ride_data.drop_location,
-        estimated_fare=ride_data.estimated_fare,
-        status="requested",   # 👈 ADD THIS
+        distance_km=ride_data.distance_km,
+        estimated_fare=estimated_fare,
+        status="requested",
         user_id=user_id
     )
 
@@ -20,7 +35,9 @@ def create_ride(db: Session, ride_data: RideCreate, user_id: int) -> Ride:
     return ride
 
 
-
+# =========================
+# READ RIDES
+# =========================
 def get_all_rides(db: Session) -> List[Ride]:
     return (
         db.query(Ride)
@@ -28,55 +45,17 @@ def get_all_rides(db: Session) -> List[Ride]:
         .all()
     )
 
-def get_ride_by_id(db: Session, ride_id: int):
+
+def get_ride_by_id(db: Session, ride_id: int) -> Ride | None:
     return db.query(Ride).filter(Ride.id == ride_id).first()
 
 
-def update_ride_status(db: Session, ride_id: int, status: str):
-    ride = db.query(Ride).filter(Ride.id == ride_id).first()
-    if not ride:
-        return None
-
-    ride.status = status
-    db.commit()
-    db.refresh(ride)
-    return ride
-
-def start_ride_as_driver(db: Session, ride_id: int, driver_id: int):
-    ride = db.query(Ride).filter(Ride.id == ride_id).first()
-    if not ride:
-        return None, "Ride not found"
-
-    if ride.driver_id != driver_id:
-        return None, "Not authorized for this ride"
-
-    if ride.status != "accepted":
-        return None, "Ride cannot be started"
-
-    ride.status = "in_progress"
-    db.commit()
-    db.refresh(ride)
-    return ride, None
-
-
-def complete_ride_as_driver(db: Session, ride_id: int, driver_id: int):
-    ride = db.query(Ride).filter(Ride.id == ride_id).first()
-    if not ride:
-        return None, "Ride not found"
-
-    if ride.driver_id != driver_id:
-        return None, "Not authorized for this ride"
-
-    if ride.status != "in_progress":
-        return None, "Ride cannot be completed"
-
-    ride.status = "completed"
-    db.commit()
-    db.refresh(ride)
-    return ride, None
-
+# =========================
+# DRIVER ACTIONS
+# =========================
 def accept_ride_as_driver(db: Session, ride_id: int, driver_id: int):
     ride = db.query(Ride).filter(Ride.id == ride_id).first()
+
     if not ride:
         return None, "Ride not found"
 
@@ -88,6 +67,64 @@ def accept_ride_as_driver(db: Session, ride_id: int, driver_id: int):
 
     ride.driver_id = driver_id
     ride.status = "accepted"
+
     db.commit()
     db.refresh(ride)
     return ride, None
+
+
+def start_ride_as_driver(db: Session, ride_id: int, driver_id: int):
+    ride = db.query(Ride).filter(Ride.id == ride_id).first()
+
+    if not ride:
+        return None, "Ride not found"
+
+    if ride.driver_id != driver_id:
+        return None, "Not authorized for this ride"
+
+    if ride.status != "accepted":
+        return None, "Ride cannot be started"
+
+    ride.status = "in_progress"
+
+    db.commit()
+    db.refresh(ride)
+    return ride, None
+
+
+def complete_ride_as_driver(db: Session, ride_id: int, driver_id: int):
+    ride = db.query(Ride).filter(Ride.id == ride_id).first()
+
+    if not ride:
+        return None, "Ride not found"
+
+    if ride.driver_id != driver_id:
+        return None, "Not authorized for this ride"
+
+    if ride.status != "in_progress":
+        return None, "Ride cannot be completed"
+
+    # Mark ride completed
+    ride.status = "completed"
+    db.commit()
+
+    # Create payment AFTER successful completion
+    create_payment(db, ride)
+
+    db.refresh(ride)
+    return ride, None
+
+
+# =========================
+# ADMIN / SYSTEM
+# =========================
+def update_ride_status(db: Session, ride_id: int, status: str):
+    ride = db.query(Ride).filter(Ride.id == ride_id).first()
+
+    if not ride:
+        return None
+
+    ride.status = status
+    db.commit()
+    db.refresh(ride)
+    return ride
