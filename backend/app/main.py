@@ -10,6 +10,8 @@ from app.api.rides import router as rides_router
 from app.api.driver import router as driver_router
 from app.api import payments, driver_earnings
 from app.api import payment_analytics
+from app.api.health import router as admin_router
+
 
 
 app = FastAPI(title="RideConnect API")
@@ -38,6 +40,7 @@ app.include_router(driver_router)
 app.include_router(payments.router)
 app.include_router(driver_earnings.router)
 app.include_router(payment_analytics.router)
+app.include_router(admin_router)
 
 # =========================
 # DB INIT

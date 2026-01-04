@@ -24,7 +24,10 @@ def login_user(
         )
 
     access_token = create_access_token(
-        data={"sub": user.email}
+        data={
+            "sub": user.email,
+            "role": user.role
+        }
     )
 
     return {

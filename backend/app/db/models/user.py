@@ -11,6 +11,7 @@ class User(Base):
 
     name = Column(String(255), nullable=True)     # ✅ FIXED
     phone = Column(String(20), nullable=True)     # ✅ FIXED
+    role = Column(String(20), nullable=False, default="user")
 
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
