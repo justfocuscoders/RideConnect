@@ -5,9 +5,9 @@ from pydantic import BaseModel
 class PaymentOut(BaseModel):
     id: int
     ride_id: int
-    amount: float
-    commission: float
-    driver_earning: float
+    amount: int
+    commission: int
+    driver_earning: int
     status: str
     created_at: datetime
 

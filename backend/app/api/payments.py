@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
+from app.api.utils.payment_response import build_payment_out
 
 from app.db.session import get_db
 from app.api.dependencies import get_current_user
@@ -17,13 +18,13 @@ router = APIRouter(prefix="/payments", tags=["Payments"])
 # =========================
 # PASSENGER: VIEW PAYMENTS
 # =========================
-@router.get("/me", response_model=List[PaymentOut])
+@router.get("/me", response_model=list[PaymentOut])
 def get_my_payments(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
-    return get_payments_for_user(db, current_user.id)
-
+    payments = get_payments_by_user(db, current_user.id)
+    return [build_payment_out(p) for p in payments]
 
 # =========================
 # ADMIN / SYSTEM: MARK PAID

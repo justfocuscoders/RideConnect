@@ -6,6 +6,7 @@ from app.api.dependencies import get_current_user
 
 from app.schemas.driver import DriverCreate, DriverOut
 from app.schemas.ride import RideOut
+from app.api.utils.ride_response import build_ride_out
 
 from app.db.repositories.driver import (
     create_driver,
@@ -90,7 +91,7 @@ def accept_ride(
     if error:
         raise HTTPException(400, error)
 
-    return RideOut.model_validate(ride)
+    return build_ride_out(ride)
 
 
 @router.patch("/rides/{ride_id}/start", response_model=RideOut)
@@ -107,7 +108,7 @@ def start_ride(
     if error:
         raise HTTPException(400, error)
 
-    return RideOut.model_validate(ride)
+    return build_ride_out(ride)
 
 
 @router.patch("/rides/{ride_id}/complete", response_model=RideOut)
@@ -124,4 +125,4 @@ def complete_ride(
     if error:
         raise HTTPException(400, error)
 
-    return RideOut.model_validate(ride)
+    return build_ride_out(ride)

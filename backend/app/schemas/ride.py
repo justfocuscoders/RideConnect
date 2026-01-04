@@ -1,8 +1,7 @@
 from datetime import datetime
 from enum import Enum
 from typing import Optional
-
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel
 
 
 class RideCreate(BaseModel):
@@ -18,10 +17,9 @@ class RideOut(BaseModel):
     pickup_location: str
     drop_location: str
     status: str
+    distance_km: float
     estimated_fare: int
     created_at: datetime
-
-    model_config = ConfigDict(from_attributes=True)
 
 
 class RideStatus(str, Enum):
