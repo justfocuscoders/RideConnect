@@ -1,6 +1,8 @@
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
+from app.db.models.driver import Driver
+
 
 from app.core.security import decode_access_token
 from app.db.session import get_db
@@ -36,3 +38,27 @@ def get_current_user(
         )
 
     return user
+
+def get_current_driver(
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    driver = (
+        db.query(Driver)
+        .filter(Driver.user_id == current_user.id)
+        .first()
+    )
+
+    if not driver:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Driver account not found"
+        )
+
+    if not driver.is_verified:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Driver not verified"
+        )
+
+    return driver

@@ -3,15 +3,19 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.db.base import Base
 from app.db.session import engine
+
 from app.api.auth import router as auth_router
 from app.api.users import router as users_router
 from app.api.rides import router as rides_router
 from app.api.driver import router as driver_router
+from app.api import payments, driver_earnings
 
 
 app = FastAPI(title="RideConnect API")
 
+# =========================
 # CORS
+# =========================
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -23,13 +27,21 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Routers
+# =========================
+# ROUTERS
+# =========================
 app.include_router(auth_router)
 app.include_router(users_router)
 app.include_router(rides_router)
 app.include_router(driver_router)
+app.include_router(payments.router)
+app.include_router(driver_earnings.router)
 
+# =========================
+# DB INIT
+# =========================
 Base.metadata.create_all(bind=engine)
+
 
 @app.get("/")
 def root():
