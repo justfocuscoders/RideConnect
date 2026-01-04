@@ -8,7 +8,6 @@ from pydantic import BaseModel, ConfigDict
 class RideCreate(BaseModel):
     pickup_location: str
     drop_location: str
-    estimated_fare: int = 0
     distance_km: float
 
 

@@ -46,7 +46,7 @@ def get_all_rides(db: Session) -> List[Ride]:
     )
 
 
-def get_ride_by_id(db: Session, ride_id: int) -> Ride | None:
+def get_ride_by_id(db: Session, ride_id: int):
     return db.query(Ride).filter(Ride.id == ride_id).first()
 
 
@@ -104,15 +104,20 @@ def complete_ride_as_driver(db: Session, ride_id: int, driver_id: int):
     if ride.status != "in_progress":
         return None, "Ride cannot be completed"
 
-    # Mark ride completed
-    ride.status = "completed"
-    db.commit()
+    try:
+        # Atomic operation starts
+        ride.status = "completed"
+        db.flush()  # DO NOT commit yet
 
-    # Create payment AFTER successful completion
-    create_payment(db, ride)
+        create_payment(db, ride)
 
-    db.refresh(ride)
-    return ride, None
+        db.commit()
+        db.refresh(ride)
+        return ride, None
+
+    except Exception:
+        db.rollback()
+        return None, "Failed to complete ride safely"
 
 
 # =========================

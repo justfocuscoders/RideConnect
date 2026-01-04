@@ -90,7 +90,7 @@ def accept_ride(
     if error:
         raise HTTPException(400, error)
 
-    return ride
+    return RideOut.model_validate(ride)
 
 
 @router.patch("/rides/{ride_id}/start", response_model=RideOut)
@@ -107,7 +107,7 @@ def start_ride(
     if error:
         raise HTTPException(400, error)
 
-    return ride
+    return RideOut.model_validate(ride)
 
 
 @router.patch("/rides/{ride_id}/complete", response_model=RideOut)
@@ -124,4 +124,4 @@ def complete_ride(
     if error:
         raise HTTPException(400, error)
 
-    return ride
+    return RideOut.model_validate(ride)
