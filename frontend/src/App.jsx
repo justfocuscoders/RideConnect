@@ -11,6 +11,8 @@ import Profile from "./pages/Profile";
 import BookRide from "./pages/BookRide";
 import RideSummary from "./pages/RideSummary";
 import RideSuccess from "./pages/RideSuccess";
+import AdminDashboard from "./admin/pages/AdminDashboard";
+
 
 
 
@@ -26,8 +28,7 @@ function App() {
         <Route path="/book-ride" element={<BookRide />} />
         <Route path="/ride-summary" element={<RideSummary />} />
         <Route path="/ride-success" element={<RideSuccess />} />
-
-
+        <Route path="/admin" element={<AdminDashboard />} />
 
         {/* Protected */}
         <Route

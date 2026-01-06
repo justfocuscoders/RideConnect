@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "../assets/styles/dashboard.css";
@@ -6,6 +7,18 @@ function Dashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
+  /* =========================
+     ADMIN REDIRECT GUARD
+     ========================= */
+  useEffect(() => {
+    if (user?.is_admin) {
+      navigate("/admin");
+    }
+  }, [user, navigate]);
+
+  /* =========================
+     LOADING STATE
+     ========================= */
   if (!user) {
     return (
       <div className="dashboard-page">
@@ -31,7 +44,7 @@ function Dashboard() {
       </div>
 
       {/* =========================
-         PROFILE COMPLETION CARD
+         PROFILE COMPLETION WARNING
          ========================= */}
       {!isProfileComplete && (
         <div className="profile-card warning">
