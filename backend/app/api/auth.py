@@ -10,7 +10,7 @@ from app.core.security import verify_password, create_access_token
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 
-@router.post("/login", response_model=TokenResponse)
+@router.post("/login")
 def login_user(
     login_data: LoginRequest,
     db: Session = Depends(get_db)
@@ -30,10 +30,26 @@ def login_user(
         }
     )
 
+    missing = []
+    if not user.name:
+        missing.append("name")
+    if not user.phone:
+        missing.append("phone")
+
     return {
         "access_token": access_token,
-        "token_type": "bearer"
+        "token_type": "bearer",
+        "user": {
+            "id": user.id,
+            "email": user.email,
+            "name": user.name,
+            "phone": user.phone,
+            "role": user.role,
+            "profile_complete": len(missing) == 0,
+            "missing_fields": missing,
+        }
     }
+
 
 
 @router.post("/register", response_model=UserOut, status_code=201)

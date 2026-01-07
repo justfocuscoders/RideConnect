@@ -4,11 +4,10 @@ import AdminLayout from "../components/AdminLayout";
 
 import {
   getRevenueTotal,
+  getRevenueDaily,
   getRideSummary,
   getDriverSummary,
-  getRevenueTrend,
-  getRideTrend,
-  getDriverEarningsTrend,
+  getPlatformEarnings,
 } from "../services/adminAnalyticsApi";
 
 import RevenueChart from "../components/RevenueChart";
@@ -19,68 +18,111 @@ export default function AdminDashboard() {
   useAdminGuard();
 
   const [stats, setStats] = useState(null);
-  const [revenueTrend, setRevenueTrend] = useState([]);
-  const [rideTrend, setRideTrend] = useState([]);
-  const [driverEarnings, setDriverEarnings] = useState([]);
+  const [revenueDaily, setRevenueDaily] = useState([]);
+  const [platformEarnings, setPlatformEarnings] = useState([]);
 
   useEffect(() => {
     Promise.all([
       getRevenueTotal(),
       getRideSummary(),
       getDriverSummary(),
-      getRevenueTrend(),
-      getRideTrend(),
-      getDriverEarningsTrend(),
-    ]).then(
-      ([
-        revenue,
-        rides,
-        drivers,
-        revenueTrendRes,
-        rideTrendRes,
-        earningsRes,
-      ]) => {
-        setStats({
-          revenue: revenue.data,
-          rides: rides.data,
-          drivers: drivers.data,
-        });
+      getRevenueDaily(),
+      getPlatformEarnings(),
+    ])
+      .then(
+        ([
+          revenueRes,
+          ridesRes,
+          driversRes,
+          revenueDailyRes,
+          platformEarningsRes,
+        ]) => {
+          // KPI stats (objects)
+          setStats({
+            revenue: revenueRes?.data || {},
+            rides: ridesRes?.data || {},
+            drivers: driversRes?.data || {},
+          });
 
-        setRevenueTrend(revenueTrendRes.data);
-        setRideTrend(rideTrendRes.data);
-        setDriverEarnings(earningsRes.data);
-      }
-    );
+          // Charts (ALWAYS arrays)
+          setRevenueDaily(
+            Array.isArray(revenueDailyRes?.data)
+              ? revenueDailyRes.data
+              : []
+          );
+
+          setPlatformEarnings(
+            Array.isArray(platformEarningsRes?.data)
+              ? platformEarningsRes.data
+              : []
+          );
+        }
+      )
+      .catch((err) => {
+        console.error("Admin analytics load failed", err);
+        setStats({
+          revenue: {},
+          rides: {},
+          drivers: {},
+        });
+        setRevenueDaily([]);
+        setPlatformEarnings([]);
+      });
   }, []);
 
-  if (!stats) return <p>Loading admin analytics...</p>;
+  if (!stats) {
+    return (
+      <AdminLayout>
+        <p>Loading admin analytics...</p>
+      </AdminLayout>
+    );
+  }
 
   return (
     <AdminLayout>
       <h2>Admin Dashboard</h2>
 
-      {/* KPI CARDS — unchanged */}
+      {/* =========================
+          KPI CARDS
+         ========================= */}
       <div className="admin-cards">
         <div className="card">
           <h4>Total Revenue</h4>
-          <p>₹ {stats.revenue.total}</p>
+          <p>₹ {stats.revenue.total_revenue ?? 0}</p>
+          <small>
+            Total Payments: {stats.revenue.total_payments ?? 0}
+          </small>
         </div>
 
         <div className="card">
           <h4>Total Rides</h4>
-          <p>{stats.rides.total_rides}</p>
+          <p>{stats.rides.total_rides ?? 0}</p>
         </div>
 
         <div className="card">
           <h4>Total Drivers</h4>
-          <p>{stats.drivers.total_drivers}</p>
+          <p>{stats.drivers.total_drivers ?? 0}</p>
         </div>
       </div>
 
-      {/* CHARTS — STEP 7.2 ADDITION */}
-      <RevenueChart data={revenueTrend} />
-      <RideTrendChart data={rideTrend} />
-      <DriverEarningsChart data={driverEarnings} />
+      {/* =========================
+          ANALYTICS CHARTS
+         ========================= */}
+
+      {revenueDaily.length > 0 ? (
+        <>
+          <RevenueChart data={revenueDaily} />
+          <RideTrendChart data={revenueDaily} />
+        </>
+      ) : (
+        <p>No revenue or ride trend data available.</p>
+      )}
+
+      {platformEarnings.length > 0 ? (
+        <DriverEarningsChart data={platformEarnings} />
+      ) : (
+        <p>No platform earnings data available.</p>
+      )}
     </AdminLayout>
   );
 }

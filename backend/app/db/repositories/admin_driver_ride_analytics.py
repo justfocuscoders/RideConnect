@@ -58,21 +58,16 @@ def get_daily_rides(db: Session):
 # DRIVERS SUMMARY
 # -------------------------------------------------
 def get_drivers_summary(db: Session):
-    total_drivers = db.query(func.count(Driver.id)).scalar()
+    total_drivers = db.query(func.count(Driver.id)).scalar() or 0
 
-    online_drivers = (
-        db.query(func.count(Driver.id))
-        .filter(Driver.is_online == True)
-        .scalar()
-    )
-
-    offline_drivers = total_drivers - online_drivers
-
+    # Online/offline not supported yet
     return {
         "total_drivers": total_drivers,
-        "online_drivers": online_drivers,
-        "offline_drivers": offline_drivers
+        "online_drivers": 0,
+        "offline_drivers": total_drivers
     }
+
+
 
 
 # -------------------------------------------------

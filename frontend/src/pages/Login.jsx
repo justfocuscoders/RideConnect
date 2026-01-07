@@ -10,56 +10,29 @@ function Login() {
 
   const navigate = useNavigate();
   const { login } = useAuth();
+  
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  setError(null);
-  setLoading(true);
+    e.preventDefault(); // ✅ prevents page reload
+    setError(null);
+    setLoading(true);
 
-  try {
-    // 1. Login
-    const response = await fetch("http://127.0.0.1:8000/auth/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ email, password }),
-    });
+    try {
+      // AuthContext handles API + state
+      const user = await login(email, password);
 
-    if (!response.ok) {
-      throw new Error("Invalid email or password");
+      // Role-based redirect
+      if (user.role === "admin") {
+        navigate("/admin");
+      } else {
+        navigate("/dashboard");
+      }
+    } catch (err) {
+      setError("Invalid email or password");
+    } finally {
+      setLoading(false);
     }
-
-    const data = await response.json();
-
-    // 2. Store JWT
-    login(data.access_token);
-
-    // 3. Fetch user profile
-    const profileRes = await fetch("http://127.0.0.1:8000/users/me", {
-      headers: {
-        Authorization: `Bearer ${data.access_token}`,
-      },
-    });
-
-    if (!profileRes.ok) {
-      throw new Error("Failed to fetch user profile");
-    }
-
-    const user = await profileRes.json();
-
-    // 4. Role-based redirect
-    if (user.role === "admin") {
-  navigate("/admin");
-} else {
-  navigate("/dashboard");
-}
-  } catch (err) {
-    setError(err.message);
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   return (
     <div>

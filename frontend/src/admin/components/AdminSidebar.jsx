@@ -7,9 +7,6 @@ export default function AdminSidebar() {
 
       <nav>
         <NavLink to="/admin">Dashboard</NavLink>
-        <NavLink to="/admin/revenue">Revenue</NavLink>
-        <NavLink to="/admin/rides">Rides</NavLink>
-        <NavLink to="/admin/drivers">Drivers</NavLink>
       </nav>
     </aside>
   );

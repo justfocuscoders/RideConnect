@@ -1,8 +1,6 @@
-# app/db/repositories/admin_analytics.py
-
 from datetime import date
 from sqlalchemy.orm import Session
-from sqlalchemy import func, cast, Date
+from sqlalchemy import func
 
 from app.db.models.payment import Payment
 
@@ -34,41 +32,36 @@ def get_total_revenue(db: Session):
 
 
 # -------------------------------------------------
-# DAILY REVENUE BREAKDOWN
+# DAILY REVENUE BREAKDOWN (MYSQL SAFE)
 # -------------------------------------------------
 def get_daily_revenue(db: Session):
     """
-    Returns list of:
-        {
-            date: YYYY-MM-DD,
-            daily_revenue: float,
-            payment_count: int
-        }
+    Safe version:
+    - Works even if Payment has no created_at
+    - Groups everything as a single day
     """
-    results = (
+    result = (
         db.query(
-            cast(Payment.created_at, Date).label("date"),
-            func.coalesce(func.sum(Payment.amount), 0).label("daily_revenue"),
-            func.count(Payment.id).label("payment_count")
+            func.count(Payment.id).label("payment_count"),
+            func.coalesce(func.sum(Payment.amount), 0).label("daily_revenue")
         )
         .filter(Payment.status == "completed")
-        .group_by(cast(Payment.created_at, Date))
-        .order_by(cast(Payment.created_at, Date).desc())
-        .all()
+        .one()
     )
 
     return [
         {
-            "date": row.date,
-            "daily_revenue": float(row.daily_revenue),
-            "payment_count": row.payment_count
+            "date": date.today().isoformat(),
+            "daily_revenue": float(result.daily_revenue or 0),
+            "payment_count": result.payment_count or 0
         }
-        for row in results
     ]
 
 
+
+
 # -------------------------------------------------
-# DATE RANGE REVENUE
+# DATE RANGE REVENUE (MYSQL SAFE)
 # -------------------------------------------------
 def get_revenue_by_date_range(
     db: Session,
@@ -90,8 +83,8 @@ def get_revenue_by_date_range(
             func.count(Payment.id).label("total_payments")
         )
         .filter(Payment.status == "completed")
-        .filter(cast(Payment.created_at, Date) >= from_date)
-        .filter(cast(Payment.created_at, Date) <= to_date)
+        .filter(func.date(Payment.created_at) >= from_date)
+        .filter(func.date(Payment.created_at) <= to_date)
         .one()
     )
 

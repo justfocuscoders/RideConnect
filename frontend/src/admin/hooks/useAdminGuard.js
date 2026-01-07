@@ -7,16 +7,15 @@ export default function useAdminGuard() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (loading) return;
+    if (loading) return; // ⛔ wait for auth
 
     if (!user) {
       navigate("/login");
       return;
     }
 
-   if (user.role !== "admin") {
-  navigate("/dashboard");
-}
-
+    if (user.role !== "admin") {
+      navigate("/dashboard");
+    }
   }, [user, loading, navigate]);
 }

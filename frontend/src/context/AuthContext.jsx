@@ -1,19 +1,19 @@
 import { createContext, useContext, useEffect, useRef, useState } from "react";
-import { jwtDecode } from "jwt-decode";
 import api from "../services/api";
 
 const AuthContext = createContext(null);
 
-// Helper: calculate remaining time before token expiry
 const calculateRemainingTime = (exp) => {
-  const currentTime = Date.now(); // ms
-  const expiryTime = exp * 1000; // sec → ms
+  const currentTime = Date.now();
+  const expiryTime = exp * 1000;
   return expiryTime - currentTime;
 };
 
 export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem("token"));
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(
+    JSON.parse(localStorage.getItem("user"))
+  );
   const [loading, setLoading] = useState(true);
 
   const logoutTimerRef = useRef(null);
@@ -24,53 +24,58 @@ export const AuthProvider = ({ children }) => {
     }
 
     localStorage.removeItem("token");
+    localStorage.removeItem("user");
     setToken(null);
     setUser(null);
     setLoading(false);
   };
 
-  const login = (newToken) => {
-    localStorage.setItem("token", newToken);
-    setToken(newToken);
-  };
+  const login = async (email, password) => {
+  const res = await api.post("/auth/login", { email, password });
 
-  // Fetch full user profile from backend
-  const fetchUser = async () => {
+  localStorage.setItem("token", res.data.access_token);
+  localStorage.setItem("user", JSON.stringify(res.data.user));
+
+  setToken(res.data.access_token);
+  setUser(res.data.user);
+
+  return res.data.user; // 🔑 REQUIRED
+};
+
+  const refreshUser = async () => {
     try {
       const res = await api.get("/users/me");
-      setUser(res.data);
-    } catch (error) {
-      console.error("Failed to fetch user profile", error);
+
+      // IMPORTANT: preserve role if backend ever misses it
+      setUser((prev) => ({
+        ...prev,
+        ...res.data,
+        role: res.data.role ?? prev?.role,
+      }));
+    } catch {
       logout();
-    } finally {
-      setLoading(false);
     }
   };
 
-  // Handle token decoding + expiry + user fetch
   useEffect(() => {
     if (!token) {
-      setUser(null);
       setLoading(false);
       return;
     }
 
     try {
-      const decoded = jwtDecode(token);
-      const remainingTime = calculateRemainingTime(decoded.exp);
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      const remainingTime = calculateRemainingTime(payload.exp);
 
       if (remainingTime <= 0) {
         logout();
         return;
       }
 
-      // Auto logout on expiry
       logoutTimerRef.current = setTimeout(logout, remainingTime);
 
-      // Fetch full user data ONCE
-      fetchUser();
-    } catch (error) {
-      console.error("Invalid token");
+      refreshUser();
+    } catch {
       logout();
     }
 
@@ -82,21 +87,22 @@ export const AuthProvider = ({ children }) => {
   }, [token]);
 
   return (
-    <AuthContext.Provider
-      value={{
-        token,
-        user,
-        setUser,          // IMPORTANT: for instant profile updates
-        loading,
-        isAuthenticated: !!token,
-        login,
-        logout,
-        refreshUser: fetchUser,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
-  );
+  <AuthContext.Provider
+    value={{
+      token,
+      user,
+      loading,
+      isAuthenticated: !!token,
+      login,
+      logout,
+      refreshUser,
+      setUser,
+    }}
+  >
+    {children}
+  </AuthContext.Provider>
+);
+
 };
 
 export const useAuth = () => useContext(AuthContext);

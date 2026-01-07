@@ -1,6 +1,9 @@
 import api from "./api";
 
-export const getCurrentUser = async () => {
-  const response = await api.get("/users/me");
-  return response.data;
+export const getCurrentUser = () => {
+  return api.get("/users/me");
+};
+
+export const updateProfile = (data) => {
+  return api.put("/users/me", data);
 };
