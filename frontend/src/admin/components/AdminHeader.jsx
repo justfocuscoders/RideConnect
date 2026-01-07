@@ -1,13 +1,27 @@
-import "../styles/admin.css";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
 export default function AdminHeader() {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
+
   return (
     <header className="admin-header">
-      <h1>Admin Dashboard</h1>
+      <div className="admin-header-left">
+        {/* intentionally empty (page title comes from page) */}
+      </div>
 
       <div className="admin-user">
-        <span>shridhar@gmail.com</span>
-        <button className="logout-btn">Logout</button>
+        <span className="admin-badge">ADMIN</span>
+        <span className="admin-email">{user?.email}</span>
+        <button className="logout-btn" onClick={handleLogout}>
+          Logout
+        </button>
       </div>
     </header>
   );
