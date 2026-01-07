@@ -1,54 +1,124 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { Link, useNavigate } from "react-router-dom";
+import AuthLayout from "../components/auth/AuthLayout";
+import api from "../services/api";
 
-const Register = () => {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-
-  const { register } = useAuth();
+export default function Register() {
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    password: "",
+  });
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleChange = (e) => {
+    setForm({
+      ...form,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    register(name, email, password);
-    navigate("/dashboard");
+    setError("");
+    setLoading(true);
+
+    try {
+      await api.post("/auth/register", {
+        name: form.name,
+        email: form.email,
+        phone: form.phone,
+        password: form.password,
+      });
+
+      navigate("/login");
+    } catch (err) {
+      setError(
+        err?.response?.data?.detail ||
+          "Registration failed. Please try again."
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div>
-      <h2>Register</h2>
+    <AuthLayout
+      title="Create your account"
+      footer={
+        <>
+          Already have an account? <Link to="/login">Sign in</Link>
+        </>
+      }
+    >
+      <form onSubmit={handleSubmit} className="auth-form">
+        {error && <p className="auth-error">{error}</p>}
 
-      <form onSubmit={handleSubmit}>
+        {/* Name */}
+        <label>Name</label>
         <input
-          type="text"
-          placeholder="Name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
+          name="name"
+          placeholder="Full name"
+          value={form.name}
+          onChange={handleChange}
           required
         />
 
+        {/* Email */}
+        <label>Email</label>
         <input
+          name="email"
           type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          placeholder="you@example.com"
+          value={form.email}
+          onChange={handleChange}
           required
         />
 
+        {/* Phone */}
+        <label>Phone</label>
         <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          name="phone"
+          type="tel"
+          placeholder="10-digit mobile number"
+          value={form.phone}
+          onChange={handleChange}
+          pattern="[0-9]{10}"
           required
         />
 
-        <button type="submit">Register</button>
-      </form>
-    </div>
-  );
-};
+        {/* Password with eye */}
+        <label>Password</label>
+        <div className="password-field">
+          <input
+            name="password"
+            type={showPassword ? "text" : "password"}
+            placeholder="Create a strong password"
+            value={form.password}
+            onChange={handleChange}
+            required
+            minLength={6}
+          />
+          <button
+            type="button"
+            className="password-toggle"
+            onClick={() => setShowPassword((v) => !v)}
+            aria-label="Toggle password visibility"
+          >
+            {showPassword ? "🙈" : "👁"}
+          </button>
+        </div>
 
-export default Register;
+        <button type="submit" disabled={loading}>
+          {loading ? "Creating account..." : "Create Account"}
+        </button>
+      </form>
+    </AuthLayout>
+  );
+}
