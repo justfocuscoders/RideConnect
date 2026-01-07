@@ -14,8 +14,9 @@ export default function useAdminGuard() {
       return;
     }
 
-    if (!user.is_admin) {
-      navigate("/dashboard");
-    }
+   if (user.role !== "admin") {
+  navigate("/dashboard");
+}
+
   }, [user, loading, navigate]);
 }

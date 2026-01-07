@@ -49,11 +49,11 @@ function Login() {
     const user = await profileRes.json();
 
     // 4. Role-based redirect
-    if (user.is_admin) {
-      navigate("/admin");
-    } else {
-      navigate("/dashboard");
-    }
+    if (user.role === "admin") {
+  navigate("/admin");
+} else {
+  navigate("/dashboard");
+}
   } catch (err) {
     setError(err.message);
   } finally {

@@ -11,9 +11,9 @@ function Dashboard() {
      ADMIN REDIRECT GUARD
      ========================= */
   useEffect(() => {
-    if (user?.is_admin) {
-      navigate("/admin");
-    }
+    if (user?.role === "admin") {
+  navigate("/admin");
+}
   }, [user, navigate]);
 
   /* =========================
