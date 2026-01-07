@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import useAdminGuard from "../hooks/useAdminGuard";
-import AdminLayout from "../components/AdminLayout";
 
 import {
   getRevenueTotal,
@@ -37,14 +36,12 @@ export default function AdminDashboard() {
           revenueDailyRes,
           platformEarningsRes,
         ]) => {
-          // KPI stats (objects)
           setStats({
             revenue: revenueRes?.data || {},
             rides: ridesRes?.data || {},
             drivers: driversRes?.data || {},
           });
 
-          // Charts (ALWAYS arrays)
           setRevenueDaily(
             Array.isArray(revenueDailyRes?.data)
               ? revenueDailyRes.data
@@ -58,71 +55,61 @@ export default function AdminDashboard() {
           );
         }
       )
-      .catch((err) => {
-        console.error("Admin analytics load failed", err);
-        setStats({
-          revenue: {},
-          rides: {},
-          drivers: {},
-        });
+      .catch(() => {
+        setStats({ revenue: {}, rides: {}, drivers: {} });
         setRevenueDaily([]);
         setPlatformEarnings([]);
       });
   }, []);
 
   if (!stats) {
-    return (
-      <AdminLayout>
-        <p>Loading admin analytics...</p>
-      </AdminLayout>
-    );
+    return <p className="admin-loading">Loading admin analytics...</p>;
   }
 
   return (
-    <AdminLayout>
-      <h2>Admin Dashboard</h2>
+    <>
+      
 
-      {/* =========================
-          KPI CARDS
-         ========================= */}
+      {/* KPI CARDS */}
       <div className="admin-cards">
-        <div className="card">
+        <div className="card revenue">
           <h4>Total Revenue</h4>
           <p>₹ {stats.revenue.total_revenue ?? 0}</p>
-          <small>
-            Total Payments: {stats.revenue.total_payments ?? 0}
-          </small>
+          <small>Total Payments: {stats.revenue.total_payments ?? 0}</small>
         </div>
 
-        <div className="card">
+        <div className="card rides">
           <h4>Total Rides</h4>
           <p>{stats.rides.total_rides ?? 0}</p>
         </div>
 
-        <div className="card">
+        <div className="card drivers">
           <h4>Total Drivers</h4>
           <p>{stats.drivers.total_drivers ?? 0}</p>
         </div>
       </div>
 
-      {/* =========================
-          ANALYTICS CHARTS
-         ========================= */}
+      {/* CHARTS */}
+      <div className="charts-section">
+        {revenueDaily.length > 0 ? (
+          <>
+            <RevenueChart data={revenueDaily} />
+            <RideTrendChart data={revenueDaily} />
+          </>
+        ) : (
+          <p className="admin-empty">
+            No revenue or ride trend data available.
+          </p>
+        )}
 
-      {revenueDaily.length > 0 ? (
-        <>
-          <RevenueChart data={revenueDaily} />
-          <RideTrendChart data={revenueDaily} />
-        </>
-      ) : (
-        <p>No revenue or ride trend data available.</p>
-      )}
-
-      {platformEarnings.length > 0 ? (
-        <DriverEarningsChart data={platformEarnings} />
-      ) : (
-        <p>No platform earnings data available.</p>
-      )}
-    </AdminLayout>
+        {platformEarnings.length > 0 ? (
+          <DriverEarningsChart data={platformEarnings} />
+        ) : (
+          <p className="admin-empty">
+            No platform earnings data available.
+          </p>
+        )}
+      </div>
+    </>
   );
 }

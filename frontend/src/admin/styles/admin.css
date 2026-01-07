@@ -1,0 +1,215 @@
+/* =========================
+   GLOBAL ADMIN LAYOUT
+   ========================= */
+
+.admin-container {
+  display: flex;
+  min-height: 100vh;
+  background: #f4f6f9;
+}
+
+.admin-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-content {
+  padding: 32px;
+}
+
+/* =========================
+   HEADER
+   ========================= */
+
+.admin-header {
+  background: #ffffff;
+  padding: 16px 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+}
+
+/* =========================
+   ADMIN SIDEBAR
+   ========================= */
+
+.admin-sidebar {
+  width: 240px;
+  background: #ffffff;
+  padding: 24px 20px;
+  border-right: 1px solid #e5e7eb;
+  min-height: 100vh;
+  position: sticky;
+  top: 0;
+}
+
+/* Logo */
+.admin-logo {
+  font-size: 22px;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 32px;
+  padding-left: 8px;
+}
+
+/* Navigation */
+.admin-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Links */
+.admin-nav a {
+  display: block;
+  padding: 10px 14px;
+  border-radius: 10px;
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 500;
+  color: #374151;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.admin-nav a:hover {
+  background: #f3f4f6;
+}
+
+.admin-nav a.active {
+  background: #e0e7ff;
+  color: #1d4ed8;
+  font-weight: 600;
+}
+
+/* =========================
+   PAGE TITLE
+   ========================= */
+
+.admin-title {
+  font-size: 26px;
+  font-weight: 600;
+  margin-bottom: 28px;
+  color: #111827;
+}
+
+/* =========================
+   KPI CARDS
+   ========================= */
+
+.admin-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 24px;
+  margin-bottom: 40px;
+}
+
+.card {
+  background: #ffffff;
+  padding: 26px;
+  border-radius: 16px;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.08);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.12);
+}
+
+.card h4 {
+  font-size: 14px;
+  color: #6b7280;
+  margin-bottom: 10px;
+}
+
+.card p {
+  font-size: 30px;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 6px;
+}
+
+.card small {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+/* Accent colors */
+.card.revenue p {
+  color: #16a34a;
+}
+
+.card.rides p {
+  color: #2563eb;
+}
+
+.card.drivers p {
+  color: #9333ea;
+}
+
+/* =========================
+   CHARTS
+   ========================= */
+
+.chart-card {
+  background: #ffffff;
+  padding: 26px;
+  border-radius: 16px;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.08);
+  margin-bottom: 32px;
+}
+
+.section-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: #111827;
+}
+
+
+/* =========================
+   STATES
+   ========================= */
+
+.admin-loading {
+  padding: 40px;
+  font-size: 16px;
+  color: #374151;
+}
+
+.admin-empty {
+  margin-top: 20px;
+  font-size: 14px;
+  color: #9ca3af;
+}
+
+/* =========================
+   RESPONSIVE
+   ========================= */
+
+@media (max-width: 1024px) {
+  .admin-sidebar {
+    width: 200px;
+  }
+
+  .admin-nav a {
+    font-size: 14px;
+    padding: 8px 12px;
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-content {
+    padding: 20px;
+  }
+
+  .admin-title {
+    font-size: 22px;
+  }
+
+  .card p {
+    font-size: 24px;
+  }
+}
