@@ -37,22 +37,13 @@ export default function AdminDashboard() {
           platformEarningsRes,
         ]) => {
           setStats({
-            revenue: revenueRes?.data || {},
-            rides: ridesRes?.data || {},
-            drivers: driversRes?.data || {},
+            revenue: revenueRes.data,
+            rides: ridesRes.data,
+            drivers: driversRes.data,
           });
 
-          setRevenueDaily(
-            Array.isArray(revenueDailyRes?.data)
-              ? revenueDailyRes.data
-              : []
-          );
-
-          setPlatformEarnings(
-            Array.isArray(platformEarningsRes?.data)
-              ? platformEarningsRes.data
-              : []
-          );
+          setRevenueDaily(revenueDailyRes.data || []);
+          setPlatformEarnings(platformEarningsRes.data || []);
         }
       )
       .catch(() => {
@@ -62,30 +53,26 @@ export default function AdminDashboard() {
       });
   }, []);
 
-  if (!stats) {
-    return <p className="admin-loading">Loading admin analytics...</p>;
-  }
+  if (!stats) return <p>Loading admin analytics...</p>;
 
   return (
     <>
-      
-
       {/* KPI CARDS */}
       <div className="admin-cards">
         <div className="card revenue">
           <h4>Total Revenue</h4>
-          <p>₹ {stats.revenue.total_revenue ?? 0}</p>
-          <small>Total Payments: {stats.revenue.total_payments ?? 0}</small>
+          <p>₹ {stats.revenue.total_revenue}</p>
+          <small>Total Payments: {stats.revenue.total_payments}</small>
         </div>
 
         <div className="card rides">
           <h4>Total Rides</h4>
-          <p>{stats.rides.total_rides ?? 0}</p>
+          <p>{stats.rides.total_rides}</p>
         </div>
 
         <div className="card drivers">
           <h4>Total Drivers</h4>
-          <p>{stats.drivers.total_drivers ?? 0}</p>
+          <p>{stats.drivers.total_drivers}</p>
         </div>
       </div>
 
@@ -97,17 +84,13 @@ export default function AdminDashboard() {
             <RideTrendChart data={revenueDaily} />
           </>
         ) : (
-          <p className="admin-empty">
-            No revenue or ride trend data available.
-          </p>
+          <p>No revenue or ride trend data available.</p>
         )}
 
         {platformEarnings.length > 0 ? (
           <DriverEarningsChart data={platformEarnings} />
         ) : (
-          <p className="admin-empty">
-            No platform earnings data available.
-          </p>
+          <p>No platform earnings data available.</p>
         )}
       </div>
     </>

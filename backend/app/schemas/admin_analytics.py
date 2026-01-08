@@ -18,8 +18,8 @@ class TotalRevenueOut(BaseModel):
 # -------------------------------------------------
 class DailyRevenueOut(BaseModel):
     date: date
-    daily_revenue: float
-    payment_count: int
+    revenue: float
+    payments: int
 
 
 # -------------------------------------------------

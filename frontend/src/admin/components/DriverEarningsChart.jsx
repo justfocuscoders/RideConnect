@@ -1,21 +1,24 @@
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 
-function DriverEarningsChart({ data }) {
+export default function DriverEarningsChart({ data }) {
   return (
-    <div className="admin-card">
-      <h3>Driver Earnings</h3>
-
+    <div className="chart-box">
+      <h3>Platform Earnings</h3>
       <ResponsiveContainer width="100%" height={300}>
         <BarChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="driver_name" />
+          <XAxis dataKey="date" />
           <YAxis />
           <Tooltip />
-          <Bar dataKey="total_earnings" />
+          <Bar dataKey="platform_earnings" fill="#f59e0b" />
         </BarChart>
       </ResponsiveContainer>
     </div>
   );
 }
-
-export default DriverEarningsChart;

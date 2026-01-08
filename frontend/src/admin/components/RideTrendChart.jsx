@@ -1,21 +1,31 @@
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 
-function RideTrendsChart({ data }) {
+export default function RideTrendChart({ data }) {
   return (
-    <div className="admin-card">
+    <div className="chart-box">
       <h3>Ride Trends</h3>
-
       <ResponsiveContainer width="100%" height={300}>
-        <BarChart data={data}>
+        <LineChart data={data}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="date" />
           <YAxis />
           <Tooltip />
-          <Bar dataKey="total_rides" />
-        </BarChart>
+          <Line
+            type="monotone"
+            dataKey="payment_count"
+            stroke="#6366f1"
+            strokeWidth={3}
+          />
+        </LineChart>
       </ResponsiveContainer>
     </div>
   );
 }
-
-export default RideTrendsChart;
