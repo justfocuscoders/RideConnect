@@ -13,6 +13,7 @@ from app.api import payment_analytics
 from app.api.health import router as admin_router
 from app.api.admin_analytics import router as admin_analytics_router
 from app.api.admin_driver_ride_analytics import router as admin_driver_ride_analytics_router
+from app.api import user_dashboard
 
 
 
@@ -46,6 +47,7 @@ app.include_router(payment_analytics.router)
 app.include_router(admin_router)
 app.include_router(admin_analytics_router)
 app.include_router(admin_driver_ride_analytics_router)
+app.include_router(user_dashboard.router)
 
 # =========================
 # DB INIT
