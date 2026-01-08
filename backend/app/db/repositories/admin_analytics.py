@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 
@@ -9,13 +9,6 @@ from app.db.models.payment import Payment
 # TOTAL REVENUE (LIFETIME)
 # -------------------------------------------------
 def get_total_revenue(db: Session):
-    """
-    Returns:
-        {
-            total_revenue: float,
-            total_payments: int
-        }
-    """
     result = (
         db.query(
             func.coalesce(func.sum(Payment.amount), 0).label("total_revenue"),
@@ -32,32 +25,48 @@ def get_total_revenue(db: Session):
 
 
 # -------------------------------------------------
-# DAILY REVENUE BREAKDOWN (MYSQL SAFE)
+# DAILY REVENUE BREAKDOWN (MYSQL SAFE + REAL)
 # -------------------------------------------------
 def get_daily_revenue(db: Session):
     """
-    Safe version:
-    - Works even if Payment has no created_at
-    - Groups everything as a single day
+    Real daily revenue using Payment.created_at
+    - MySQL safe
+    - Schema safe
+    - No 500 errors
     """
-    result = (
+    results = (
         db.query(
+            func.date(Payment.created_at).label("day"),
             func.count(Payment.id).label("payment_count"),
             func.coalesce(func.sum(Payment.amount), 0).label("daily_revenue")
         )
         .filter(Payment.status == "completed")
-        .one()
+        .filter(Payment.created_at.isnot(None))
+        .group_by(func.date(Payment.created_at))
+        .order_by(func.date(Payment.created_at))
+        .all()
     )
 
-    return [
-        {
-            "date": date.today().isoformat(),
-            "daily_revenue": float(result.daily_revenue or 0),
-            "payment_count": result.payment_count or 0
-        }
-    ]
+    response = []
 
+    for row in results:
+        day_value = row.day
 
+        # Normalize MySQL return type
+        if isinstance(day_value, str):
+            day_value = date.fromisoformat(day_value)
+        elif isinstance(day_value, datetime):
+            day_value = day_value.date()
+
+        response.append(
+            {
+                "date": date.today(),
+                "daily_revenue": float(row.daily_revenue),
+                "payment_count": row.payment_count
+            }
+        )
+
+    return response
 
 
 # -------------------------------------------------
@@ -68,21 +77,13 @@ def get_revenue_by_date_range(
     from_date: date,
     to_date: date
 ):
-    """
-    Returns:
-        {
-            from_date: date,
-            to_date: date,
-            total_revenue: float,
-            total_payments: int
-        }
-    """
     result = (
         db.query(
             func.coalesce(func.sum(Payment.amount), 0).label("total_revenue"),
             func.count(Payment.id).label("total_payments")
         )
         .filter(Payment.status == "completed")
+        .filter(Payment.created_at.isnot(None))
         .filter(func.date(Payment.created_at) >= from_date)
         .filter(func.date(Payment.created_at) <= to_date)
         .one()
