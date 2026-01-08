@@ -1,4 +1,6 @@
-from sqlalchemy import Column, Integer, Float, String, ForeignKey
+from datetime import datetime
+
+from sqlalchemy import Column, Integer, Float, String, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
 from app.db.base import Base
 
@@ -32,6 +34,8 @@ class Payment(Base):
     driver_earning = Column(Float, nullable=False)  # driver income
 
     status = Column(String(20), default="pending", nullable=False)
+
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     ride = relationship("Ride")
     driver = relationship("Driver")
