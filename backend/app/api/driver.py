@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 
 from app.db.session import get_db
-from app.api.dependencies import get_current_user
+from app.api.dependencies import get_current_user, get_current_driver
 
 from app.schemas.driver import DriverCreate, DriverOut
 from app.schemas.ride import RideOut
@@ -20,8 +21,16 @@ from app.db.repositories.ride import (
     complete_ride_as_driver,
 )
 
+from app.db.models.ride import Ride
+from app.db.models.payment import Payment
+
+# ✅ SINGLE ROUTER (IMPORTANT)
 router = APIRouter(prefix="/drivers", tags=["Drivers"])
 
+
+# ==============================
+# DRIVER PROFILE
+# ==============================
 
 @router.post("", response_model=DriverOut, status_code=status.HTTP_201_CREATED)
 def register_driver(
@@ -46,6 +55,10 @@ def get_my_driver_profile(
         raise HTTPException(404, "Driver profile not found")
     return driver
 
+
+# ==============================
+# DRIVER AVAILABILITY
+# ==============================
 
 @router.patch("/online", response_model=DriverOut)
 def go_online(
@@ -73,6 +86,10 @@ def go_offline(
 
     return set_driver_availability(db, driver.id, False)
 
+
+# ==============================
+# DRIVER RIDE ACTIONS
+# ==============================
 
 @router.patch("/rides/{ride_id}/accept", response_model=RideOut)
 def accept_ride(
@@ -126,3 +143,50 @@ def complete_ride(
         raise HTTPException(400, error)
 
     return build_ride_out(ride)
+
+
+# ==============================
+# DRIVER DASHBOARD OVERVIEW
+# ==============================
+
+@router.get("/dashboard/overview", tags=["Driver Dashboard"])
+def driver_dashboard_overview(
+    db: Session = Depends(get_db),
+    current_driver=Depends(get_current_driver),
+):
+    total_rides = db.query(Ride).filter(
+        Ride.driver_id == current_driver.id
+    ).count()
+
+    completed_rides = db.query(Ride).filter(
+        Ride.driver_id == current_driver.id,
+        Ride.status == "COMPLETED"
+    ).count()
+
+    active_rides = db.query(Ride).filter(
+        Ride.driver_id == current_driver.id,
+        Ride.status.in_(["ASSIGNED", "ACCEPTED", "STARTED"])
+    ).count()
+
+    total_earnings = db.query(
+        func.coalesce(func.sum(Payment.amount), 0)
+    ).filter(
+        Payment.driver_id == current_driver.id,
+        Payment.status == "PAID"
+    ).scalar()
+
+    today_earnings = db.query(
+        func.coalesce(func.sum(Payment.amount), 0)
+    ).filter(
+        Payment.driver_id == current_driver.id,
+        Payment.status == "PAID",
+        func.date(Payment.created_at) == func.current_date()
+    ).scalar()
+
+    return {
+        "total_rides": total_rides,
+        "completed_rides": completed_rides,
+        "active_rides": active_rides,
+        "total_earnings": float(total_earnings),
+        "today_earnings": float(today_earnings),
+    }

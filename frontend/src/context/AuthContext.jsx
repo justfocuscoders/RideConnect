@@ -38,24 +38,28 @@ export const AuthProvider = ({ children }) => {
 
   setToken(res.data.access_token);
   setUser(res.data.user);
+  setLoading(false); // ✅ ADD THIS
 
-  return res.data.user; // 🔑 REQUIRED
+  return res.data.user;
 };
 
-  const refreshUser = async () => {
-    try {
-      const res = await api.get("/users/me");
 
-      // IMPORTANT: preserve role if backend ever misses it
-      setUser((prev) => ({
-        ...prev,
-        ...res.data,
-        role: res.data.role ?? prev?.role,
-      }));
-    } catch {
-      logout();
-    }
-  };
+  const refreshUser = async () => {
+  try {
+    const res = await api.get("/users/me");
+
+    setUser((prev) => ({
+      ...prev,
+      ...res.data,
+      role: res.data.role ?? prev?.role,
+    }));
+  } catch {
+    logout();
+  } finally {
+    setLoading(false); // 🔴 CRITICAL
+  }
+};
+
 
   useEffect(() => {
     if (!token) {

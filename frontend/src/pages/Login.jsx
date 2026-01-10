@@ -14,28 +14,30 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
+  e.preventDefault();
+  setError("");
+  setLoading(true);
 
-    try {
-      const user = await login(email, password);
+  try {
+    const user = await login(email, password);
 
-      // Redirect based on role
-      if (user.role === "admin") {
-        navigate("/admin");
-      } else {
-        navigate("/dashboard");
-      }
-    } catch (err) {
-      setError(
-        err?.response?.data?.detail ||
-          "Invalid email or password"
-      );
-    } finally {
-      setLoading(false);
+    // Role-based redirect (FIXED)
+    if (user.role === "admin") {
+      navigate("/admin/dashboard");
+    } else if (user.role === "driver") {
+      navigate("/driver/dashboard");
+    } else {
+      navigate("/dashboard"); // user
     }
-  };
+  } catch (err) {
+    setError(
+      err?.response?.data?.detail || "Invalid email or password"
+    );
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <AuthLayout
