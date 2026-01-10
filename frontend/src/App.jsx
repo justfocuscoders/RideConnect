@@ -3,24 +3,31 @@ import { Routes, Route } from "react-router-dom";
 import Layout from "./components/layout/Layout";
 import ProtectedRoute from "./components/routing/ProtectedRoute";
 
+/* Public Pages */
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import About from "./pages/About";
-import Dashboard from "./pages/Dashboard";
-import Profile from "./pages/Profile";
 import BookRide from "./pages/BookRide";
 import RideSummary from "./pages/RideSummary";
 import RideSuccess from "./pages/RideSuccess";
 
-/* ADMIN */
+/* User */
+import Dashboard from "./pages/Dashboard";
+import Profile from "./pages/Profile";
+import UserDashboard from "./user/pages/UserDashboard";
+
+/* Admin */
 import AdminLayout from "./admin/AdminLayout";
 import AdminDashboard from "./admin/pages/AdminDashboard";
+
+/* Driver */
+import DriverDashboard from "./driver/pages/DriverDashboard";
 
 function App() {
   return (
     <Routes>
-      {/* ================= USER ROUTES ================= */}
+      {/* ================= USER LAYOUT ================= */}
       <Route path="/" element={<Layout />}>
         {/* Public */}
         <Route index element={<Home />} />
@@ -31,11 +38,11 @@ function App() {
         <Route path="ride-summary" element={<RideSummary />} />
         <Route path="ride-success" element={<RideSuccess />} />
 
-        {/* Protected User */}
+        {/* Protected User Pages */}
         <Route
           path="dashboard"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute role="user">
               <Dashboard />
             </ProtectedRoute>
           }
@@ -44,14 +51,23 @@ function App() {
         <Route
           path="profile"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute role="user">
               <Profile />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="user/dashboard"
+          element={
+            <ProtectedRoute role="user">
+              <UserDashboard />
             </ProtectedRoute>
           }
         />
       </Route>
 
-      {/* ================= ADMIN ROUTES ================= */}
+      {/* ================= ADMIN ================= */}
       <Route
         path="/admin"
         element={
@@ -62,6 +78,16 @@ function App() {
       >
         <Route index element={<AdminDashboard />} />
       </Route>
+
+      {/* ================= DRIVER ================= */}
+      <Route
+        path="/driver/dashboard"
+        element={
+          <ProtectedRoute role="driver">
+            <DriverDashboard />
+          </ProtectedRoute>
+        }
+      />
     </Routes>
   );
 }
