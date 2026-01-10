@@ -6,7 +6,7 @@ from app.api.dependencies import get_current_driver
 from app.db.models.ride import Ride
 from app.db.models.payment import Payment
 
-router = APIRouter(prefix="/drivers/dashboard", tags=["Driver Dashboard"])
+router = APIRouter(prefix="/dashboard", tags=["Driver Dashboard"])
 
 @router.get("/overview")
 def driver_dashboard_overview(

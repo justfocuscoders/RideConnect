@@ -8,7 +8,7 @@ from app.db.repositories.driver_earning import (
     get_driver_total_earnings,
 )
 
-router = APIRouter(prefix="/drivers/earnings", tags=["Driver Earnings"])
+router = APIRouter(prefix="/earnings", tags=["Driver Earnings"])
 
 
 @router.get("")
