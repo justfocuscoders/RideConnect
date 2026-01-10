@@ -6,7 +6,7 @@ from app.api.dependencies import get_current_user
 from app.schemas.driver import DriverOut
 from app.db.repositories.driver import (
     get_driver_by_user,
-    set_driver_availability,
+    set_driver_online_status,
 )
 
 router = APIRouter()
@@ -28,7 +28,7 @@ def go_online(
     if not driver.is_verified:
         raise HTTPException(400, "Driver is not verified")
 
-    return set_driver_availability(db, driver.id, True)
+    return set_driver_online_status(db, driver.id, True)
 
 
 @router.patch("/offline", response_model=DriverOut)
@@ -40,7 +40,7 @@ def go_offline(
     if not driver:
         raise HTTPException(404, "Driver profile not found")
 
-    return set_driver_availability(db, driver.id, False)
+    return set_driver_online_status(db, driver.id, False)
 
 
 

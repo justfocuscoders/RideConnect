@@ -1,10 +1,12 @@
 from pydantic import BaseModel
 from datetime import datetime
 
+
 class DriverCreate(BaseModel):
     license_number: str
     vehicle_number: str
     vehicle_type: str
+
 
 class DriverOut(BaseModel):
     id: int
@@ -13,7 +15,7 @@ class DriverOut(BaseModel):
     vehicle_number: str
     vehicle_type: str
     is_verified: bool
-    is_available: bool
+    is_online: bool
     created_at: datetime
 
     class Config:

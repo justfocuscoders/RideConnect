@@ -24,7 +24,7 @@ def get_driver_by_user(db: Session, user_id: int):
     )
 
 
-def set_driver_availability(db: Session, driver_id: int, available: bool):
+def set_driver_online_status(db: Session, driver_id: int, is_online: bool):
     driver = (
         db.query(Driver)
         .filter(Driver.id == driver_id)
@@ -34,7 +34,7 @@ def set_driver_availability(db: Session, driver_id: int, available: bool):
     if not driver:
         return None
 
-    driver.is_available = available
+    driver.is_online = is_online
     db.commit()
     db.refresh(driver)
     return driver

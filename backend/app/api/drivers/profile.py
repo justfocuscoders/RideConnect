@@ -5,7 +5,8 @@ from app.api.dependencies import get_current_user
 from app.schemas.driver import DriverCreate, DriverOut
 from app.db.repositories.driver import create_driver, get_driver_by_user
 
-router = APIRouter()
+router = APIRouter(prefix="/profile", tags=["Drivers"])
+
 
 
 
