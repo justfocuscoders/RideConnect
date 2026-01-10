@@ -3,6 +3,8 @@ import { fetchDriverOverview } from "../api/driverDashboardApi";
 import DriverKPICard from "../components/DriverKPICard";
 import ActiveRidePanel from "../components/ActiveRidePanel";
 import "../styles/driverDashboard.css";
+import DriverOnlineToggle from "../components/DriverOnlineToggle";
+
 
 
 const DriverDashboard = () => {
@@ -22,6 +24,8 @@ if (!data) return <p>Unable to load dashboard data.</p>;
     
     <div className="driver-dashboard">
       <h1>Driver Dashboard</h1>
+      <DriverOnlineToggle />
+
       
 
       {/* KPI GRID */}

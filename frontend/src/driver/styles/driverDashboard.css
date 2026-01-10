@@ -262,3 +262,28 @@ button:disabled {
     color: #64748b;
   }
 }
+
+.driver-status-toggle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.driver-status-toggle button {
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.driver-status-toggle .online {
+  background: #16a34a;
+  color: white;
+}
+
+.driver-status-toggle .offline {
+  background: #dc2626;
+  color: white;
+}
