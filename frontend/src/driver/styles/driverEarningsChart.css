@@ -1,0 +1,39 @@
+.earnings-chart {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 20px;
+  margin: 24px 0;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+}
+
+.earnings-chart h2 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.chart-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+  height: 180px;
+}
+
+.chart-bar-wrapper {
+  flex: 1;
+  text-align: center;
+}
+
+.chart-bar {
+  width: 100%;
+  background: linear-gradient(180deg, #3b82f6, #2563eb);
+  border-radius: 8px 8px 0 0;
+  transition: height 0.3s ease;
+}
+
+.chart-label {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  color: #64748b;
+}

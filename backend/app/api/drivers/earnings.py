@@ -7,6 +7,7 @@ from app.db.repositories.driver_earning import (
     get_driver_earnings,
     get_driver_total_earnings,
 )
+from app.services.driver_earnings import get_driver_earnings_last_7_days
 
 router = APIRouter(prefix="/earnings", tags=["Driver Earnings"])
 
@@ -23,3 +24,11 @@ def driver_earnings_summary(
         "total_earnings": total,
         "history": earnings,
     }
+
+
+@router.get("/last-7-days")
+def driver_earnings_last_7_days(
+    db: Session = Depends(get_db),
+    driver=Depends(get_current_driver),
+):
+    return get_driver_earnings_last_7_days(db, driver.id)
