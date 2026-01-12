@@ -37,3 +37,10 @@
   font-size: 12px;
   color: #64748b;
 }
+
+.chart-empty-hint {
+  margin-top: 10px;
+  font-size: 13px;
+  color: #6b7280;
+  text-align: center;
+}

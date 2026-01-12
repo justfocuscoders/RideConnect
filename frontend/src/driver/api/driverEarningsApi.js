@@ -10,3 +10,17 @@ export const fetchDriverEarningsLast7Days = async () => {
   return response.data;
 };
 
+// STEP 9.7 — Range-based earnings
+export const fetchDriverEarningsDetails = async ({
+  startDate,
+  endDate,
+}) => {
+  const response = await api.get("/drivers/earnings/details", {
+    params: {
+      start_date: startDate,
+      end_date: endDate,
+    },
+  });
+
+  return response.data;
+};

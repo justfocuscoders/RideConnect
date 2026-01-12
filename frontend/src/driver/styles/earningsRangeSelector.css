@@ -1,0 +1,37 @@
+.earnings-range-selector {
+  display: flex;
+  gap: 8px;
+  margin: 16px 0;
+  flex-wrap: wrap;
+}
+
+.range-btn {
+  padding: 6px 14px;
+  font-size: 13px;
+  border-radius: 20px;
+  border: 1px solid #e5e7eb;
+  background: #4e6efd;
+  cursor: pointer;
+}
+
+.range-btn.active {
+  background: #f73962;
+  color: white;
+  border-color: #e62d74;
+}
+
+.earnings-range-wrapper {
+  margin: 16px 0;
+}
+
+.custom-date-inputs {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.custom-date-inputs input {
+  padding: 6px 8px;
+  font-size: 13px;
+}

@@ -7,9 +7,10 @@ def get_driver_earnings(db: Session, driver_id: int):
     return (
         db.query(DriverEarning)
         .filter(DriverEarning.driver_id == driver_id)
-        .order_by(DriverEarning.created_at.desc())
+        .order_by(DriverEarning.id.desc())
         .all()
     )
+
 
 
 def get_driver_total_earnings(db: Session, driver_id: int) -> float:
