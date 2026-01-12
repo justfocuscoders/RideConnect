@@ -85,7 +85,7 @@ def start_ride_as_driver(db: Session, ride_id: int, driver_id: int):
     if ride.status != "accepted":
         return None, "Ride cannot be started"
 
-    ride.status = "in_progress"
+    ride.status = "ongoing"
 
     db.commit()
     db.refresh(ride)
@@ -101,7 +101,7 @@ def complete_ride_as_driver(db: Session, ride_id: int, driver_id: int):
     if ride.driver_id != driver_id:
         return None, "Not authorized for this ride"
 
-    if ride.status != "in_progress":
+    if ride.status != "ongoing":
         return None, "Ride cannot be completed"
 
     try:

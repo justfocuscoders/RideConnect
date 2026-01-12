@@ -12,6 +12,6 @@ router = APIRouter(prefix="/drivers", tags=["Drivers"])
 router.include_router(profile_router)
 router.include_router(dashboard_router)
 router.include_router(earnings_router)
-router.include_router(rides_router)        # ✅ ONLY ONCE
+router.include_router(rides_router)       # ✅ ONLY ONCE
 router.include_router(status_router)
 router.include_router(active_ride_router)

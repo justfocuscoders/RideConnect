@@ -7,6 +7,8 @@ import ActiveRidePanel from "../components/ActiveRidePanel";
 import DriverOnlineToggle from "../components/DriverOnlineToggle";
 import DriverDashboardSkeleton from "../components/DriverDashboardSkeleton";
 import DriverDashboardError from "../components/DriverDashboardError";
+import EmptyState from "../components/EmptyState";
+
 
 import "../styles/driverDashboard.css";
 
@@ -42,6 +44,7 @@ const DriverDashboard = () => {
 
   // ✅ Loading animation
   if (loading) return <DriverDashboardSkeleton />;
+  
 
   // ✅ Error animation
   if (error)
@@ -56,6 +59,8 @@ const DriverDashboard = () => {
     (r) => r.status === "accepted" || r.status === "in_progress"
   );
 
+  
+
   return (
     <div className="driver-dashboard">
       <h1>Driver Dashboard</h1>
@@ -69,10 +74,15 @@ const DriverDashboard = () => {
       </div>
 
       {activeRide ? (
-        <ActiveRidePanel ride={activeRide} onRefresh={loadDashboard} />
-      ) : (
-        <p>No active ride at the moment.</p>
-      )}
+  <ActiveRidePanel ride={activeRide} onRefresh={loadDashboard} />
+) : (
+  <EmptyState
+    title="No active ride"
+    description="Accept a ride request to start driving."
+  />
+)}
+
+
     </div>
   );
 };

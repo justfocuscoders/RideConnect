@@ -350,3 +350,20 @@ button:disabled {
   border: none;
   cursor: pointer;
 }
+
+.active-ride-card {
+  margin-top: 24px;
+  padding: 20px;
+  border-radius: 12px;
+  background: #f8fafc;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.active-ride-card h2 {
+  margin-bottom: 12px;
+}
+
+.ride-info p {
+  margin: 6px 0;
+}
+
