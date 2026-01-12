@@ -1,15 +1,22 @@
-import axios from "../../utils/axios";
+import api from "../../services/api";
 
+// Fetch all rides assigned to the driver
 export const fetchDriverRides = async () => {
-  const res = await axios.get("/drivers/rides");
+  const res = await api.get("/drivers/rides");
   return res.data;
 };
 
-export const acceptRide = (id) =>
-  axios.patch(`/drivers/rides/${id}/accept`);
+// Accept a ride
+export const acceptRide = (rideId) => {
+  return api.patch(`/drivers/rides/${rideId}/accept`);
+};
 
-export const startRide = (id) =>
-  axios.patch(`/drivers/rides/${id}/start`);
+// Start a ride
+export const startRide = (rideId) => {
+  return api.patch(`/drivers/rides/${rideId}/start`);
+};
 
-export const completeRide = (id) =>
-  axios.patch(`/drivers/rides/${id}/complete`);
+// Complete a ride
+export const completeRide = (rideId) => {
+  return api.patch(`/drivers/rides/${rideId}/complete`);
+};

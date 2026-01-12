@@ -7,10 +7,13 @@ const DriverRides = () => {
   const [loading, setLoading] = useState(true);
 
   const loadRides = async () => {
-    setLoading(true);
-    const data = await fetchDriverRides();
-    setRides(data);
-    setLoading(false);
+    try {
+      setLoading(true);
+      const data = await fetchDriverRides();
+      setRides(data);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -22,7 +25,11 @@ const DriverRides = () => {
   return (
     <div className="driver-rides">
       <h1>My Rides</h1>
-      <DriverRidesTable rides={rides} onActionComplete={loadRides} />
+
+      <DriverRidesTable
+        rides={rides}
+        onActionComplete={loadRides}
+      />
     </div>
   );
 };

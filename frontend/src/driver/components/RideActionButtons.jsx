@@ -4,30 +4,48 @@ import {
   completeRide,
 } from "../api/driverRidesApi";
 
-const RideActionButtons = ({ ride, onSuccess }) => {
+const RideActionButtons = ({
+  ride,
+  disableAccept = false,
+  onSuccess,
+}) => {
   const handleAction = async (actionFn) => {
-    await actionFn(ride.ride_id);
-    onSuccess();
+    try {
+      await actionFn(ride.id);
+      onSuccess();
+    } catch (err) {
+      alert(
+        err.response?.data?.detail ||
+          "Ride action failed"
+      );
+    }
   };
 
   switch (ride.status) {
-    case "ASSIGNED":
+    case "requested":
       return (
-        <button onClick={() => handleAction(acceptRide)}>
+        <button
+          disabled={disableAccept}
+          onClick={() => handleAction(acceptRide)}
+        >
           Accept
         </button>
       );
 
-    case "ACCEPTED":
+    case "accepted":
       return (
-        <button onClick={() => handleAction(startRide)}>
+        <button
+          onClick={() => handleAction(startRide)}
+        >
           Start Ride
         </button>
       );
 
-    case "STARTED":
+    case "in_progress":
       return (
-        <button onClick={() => handleAction(completeRide)}>
+        <button
+          onClick={() => handleAction(completeRide)}
+        >
           Complete Ride
         </button>
       );
