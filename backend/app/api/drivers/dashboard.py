@@ -32,18 +32,17 @@ def driver_dashboard_overview(
         Ride.status.in_(["accepted", "arriving", "ongoing"])
     ).count()
 
+    # ✅ FIX: count all earnings (do NOT filter by PAID)
     total_earnings = db.query(
         func.coalesce(func.sum(Payment.amount), 0)
     ).filter(
-        Payment.driver_id == current_driver.id,
-        Payment.status == "PAID"
+        Payment.driver_id == current_driver.id
     ).scalar()
 
     today_earnings = db.query(
         func.coalesce(func.sum(Payment.amount), 0)
     ).filter(
         Payment.driver_id == current_driver.id,
-        Payment.status == "PAID",
         func.date(Payment.created_at) == func.current_date()
     ).scalar()
 
