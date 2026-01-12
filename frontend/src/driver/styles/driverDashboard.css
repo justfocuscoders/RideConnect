@@ -287,3 +287,66 @@ button:disabled {
   background: #dc2626;
   color: white;
 }
+
+
+.skeleton * {
+  background: linear-gradient(
+    90deg,
+    #e5e7eb 25%,
+    #f3f4f6 37%,
+    #e5e7eb 63%
+  );
+  background-size: 400% 100%;
+  animation: shimmer 1.4s ease infinite;
+  border-radius: 12px;
+}
+
+@keyframes shimmer {
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+
+.skeleton-title {
+  height: 32px;
+  width: 240px;
+  margin-bottom: 16px;
+}
+
+.skeleton-toggle {
+  height: 40px;
+  width: 120px;
+  margin-bottom: 24px;
+}
+
+.kpi-skeleton-card {
+  height: 120px;
+}
+
+.active-ride-skeleton {
+  height: 160px;
+  margin-top: 32px;
+}
+
+.dashboard-error {
+  text-align: center;
+  margin-top: 80px;
+}
+
+.dashboard-error h2 {
+  font-size: 20px;
+  margin-bottom: 8px;
+}
+
+.dashboard-error p {
+  color: #6b7280;
+  margin-bottom: 16px;
+}
+
+.dashboard-error button {
+  padding: 10px 18px;
+  border-radius: 8px;
+  background: #2563eb;
+  color: white;
+  border: none;
+  cursor: pointer;
+}

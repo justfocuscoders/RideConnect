@@ -1,68 +1,78 @@
 import { useEffect, useState } from "react";
 import { fetchDriverOverview } from "../api/driverDashboardApi";
+import { fetchDriverRides } from "../api/driverRidesApi";
+
 import DriverKPICard from "../components/DriverKPICard";
 import ActiveRidePanel from "../components/ActiveRidePanel";
-import "../styles/driverDashboard.css";
 import DriverOnlineToggle from "../components/DriverOnlineToggle";
+import DriverDashboardSkeleton from "../components/DriverDashboardSkeleton";
+import DriverDashboardError from "../components/DriverDashboardError";
 
-
+import "../styles/driverDashboard.css";
 
 const DriverDashboard = () => {
   const [data, setData] = useState(null);
+  const [rides, setRides] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null); // ✅ FIX
+
+  const loadDashboard = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const [overview, driverRides] = await Promise.all([
+        fetchDriverOverview(),
+        fetchDriverRides(),
+      ]);
+
+      setData(overview);
+      setRides(driverRides);
+    } catch (err) {
+      console.error("Driver dashboard load failed:", err);
+      setError("We couldn’t load your dashboard right now.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    fetchDriverOverview()
-      .then(setData)
-      .finally(() => setLoading(false));
+    loadDashboard();
   }, []);
 
-  if (loading) return <p>Loading dashboard...</p>;
-if (!data) return <p>Unable to load dashboard data.</p>;
+  // ✅ Loading animation
+  if (loading) return <DriverDashboardSkeleton />;
+
+  // ✅ Error animation
+  if (error)
+    return (
+      <DriverDashboardError
+        message={error}
+        onRetry={loadDashboard}
+      />
+    );
+
+  const activeRide = rides.find(
+    (r) => r.status === "accepted" || r.status === "in_progress"
+  );
 
   return (
-    
     <div className="driver-dashboard">
       <h1>Driver Dashboard</h1>
       <DriverOnlineToggle />
 
-      
-
-      {/* KPI GRID */}
       <div className="kpi-grid">
-        <DriverKPICard
-  title="Total Rides"
-  value={data.total_rides}
-  icon="🚗"
-  variant="primary"
-/>
-
-<DriverKPICard
-  title="Completed Rides"
-  value={data.completed_rides}
-  icon="✅"
-  variant="success"
-/>
-
-<DriverKPICard
-  title="Total Earnings"
-  value={`₹${data.total_earnings}`}
-  icon="💰"
-  variant="earnings"
-/>
-
-<DriverKPICard
-  title="Today's Earnings"
-  value={`₹${data.today_earnings}`}
-  icon="📅"
-  variant="today"
-/>
-
-
+        <DriverKPICard title="Total Rides" value={data.total_rides} />
+        <DriverKPICard title="Completed Rides" value={data.completed_rides} />
+        <DriverKPICard title="Total Earnings" value={`₹${data.total_earnings}`} />
+        <DriverKPICard title="Today's Earnings" value={`₹${data.today_earnings}`} />
       </div>
 
-      {/* ACTIVE RIDE */}
-      <ActiveRidePanel />
+      {activeRide ? (
+        <ActiveRidePanel ride={activeRide} onRefresh={loadDashboard} />
+      ) : (
+        <p>No active ride at the moment.</p>
+      )}
     </div>
   );
 };

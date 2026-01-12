@@ -11,7 +11,6 @@ from app.api.admin import router as admin_router
 
 app = FastAPI(title="RideConnect API")
 
-# CORS configuration for Vite frontend
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -23,13 +22,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Routers
 app.include_router(auth_router)
 app.include_router(users_router)
-app.include_router(drivers_router)
+app.include_router(drivers_router)   # ✅ ONE DRIVER ENTRY POINT
 app.include_router(admin_router)
 
-# DB init (dev-safe)
 Base.metadata.create_all(bind=engine)
 
 @app.get("/")
