@@ -21,13 +21,12 @@ export default function Login() {
   try {
     const user = await login(email, password);
 
-    // Role-based redirect (FIXED)
     if (user.role === "admin") {
-      navigate("/admin/dashboard");
+      navigate("/admin", { replace: true });
     } else if (user.role === "driver") {
-      navigate("/driver/dashboard");
+      navigate("/driver/dashboard", { replace: true });
     } else {
-      navigate("/dashboard"); // user
+      navigate("/dashboard", { replace: true }); // user
     }
   } catch (err) {
     setError(
@@ -37,6 +36,7 @@ export default function Login() {
     setLoading(false);
   }
 };
+
 
 
   return (

@@ -1,0 +1,64 @@
+.user-dashboard {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.user-dashboard h1 {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+.dashboard-section {
+  margin-top: 32px;
+}
+
+.dashboard-section h2 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+/* Card wrapper */
+.dashboard-card {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+}
+
+/* Tables spacing */
+.dashboard-table {
+  margin-top: 12px;
+}
+
+/* Loading / error states */
+.dashboard-loading,
+.dashboard-error {
+  text-align: center;
+  padding: 40px;
+  font-size: 16px;
+  color: #555;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .user-dashboard {
+    padding: 16px;
+  }
+
+  .dashboard-card {
+    padding: 16px;
+  }
+}
+
+.dashboard-header {
+  margin-bottom: 24px;
+}
+
+.dashboard-subtitle {
+  color: #6b7280;
+  font-size: 14px;
+  margin-top: 4px;
+}

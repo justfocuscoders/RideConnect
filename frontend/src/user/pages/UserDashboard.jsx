@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import useUserGuard from "../hooks/useUserGuard";
+import "../css/UserDashboard.css";
+
 import {
   getUserDashboardSummary,
   getUserRides,
@@ -11,33 +12,70 @@ import UserRidesTable from "../components/UserRidesTable";
 import UserPaymentsTable from "../components/UserPaymentsTable";
 
 const UserDashboard = () => {
-  useUserGuard();
-
   const [summary, setSummary] = useState(null);
   const [rides, setRides] = useState([]);
   const [payments, setPayments] = useState([]);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    getUserDashboardSummary().then(setSummary);
-    getUserRides().then(setRides);
-    getUserPayments().then(setPayments);
+    const load = async () => {
+      try {
+        const [s, r, p] = await Promise.all([
+          getUserDashboardSummary(),
+          getUserRides(),
+          getUserPayments(),
+        ]);
+
+        setSummary(s);
+        setRides(r);
+        setPayments(p);
+      } catch (err) {
+        console.warn("User dashboard load failed", err);
+        setError("Failed to load dashboard data");
+      }
+    };
+
+    load();
   }, []);
 
-  if (!summary) return <p>Loading...</p>;
+  if (error) {
+    return <div className="dashboard-error">{error}</div>;
+  }
+
+  if (!summary) {
+    return <div className="dashboard-loading">Loading dashboard...</div>;
+  }
 
   return (
-    <div>
+  <div className="user-dashboard">
+    <div className="dashboard-header">
       <h1>User Dashboard</h1>
-
-      <UserKpiCards summary={summary} />
-
-      <h2>Recent Rides</h2>
-      <UserRidesTable rides={rides} />
-
-      <h2>Payments</h2>
-      <UserPaymentsTable payments={payments} />
+      <p className="dashboard-subtitle">
+        Overview of your rides and payments
+      </p>
     </div>
-  );
+
+    {/* KPI GRID */}
+    <UserKpiCards summary={summary} />
+
+    {/* RIDES */}
+    <div className="dashboard-section">
+      <h2>Recent Rides</h2>
+      <div className="dashboard-card">
+        <UserRidesTable rides={rides} />
+      </div>
+    </div>
+
+    {/* PAYMENTS */}
+    <div className="dashboard-section">
+      <h2>Payments</h2>
+      <div className="dashboard-card">
+        <UserPaymentsTable payments={payments} />
+      </div>
+    </div>
+  </div>
+);
+
 };
 
 export default UserDashboard;

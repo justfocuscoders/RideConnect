@@ -1,10 +1,27 @@
+import "../css/UserKpiCards.css";
+
 const UserKpiCards = ({ summary }) => {
   return (
-    <div className="grid grid-cols-4 gap-4">
-      <div className="card">Total Rides: {summary.total_rides}</div>
-      <div className="card">Completed: {summary.completed_rides}</div>
-      <div className="card">Cancelled: {summary.cancelled_rides}</div>
-      <div className="card">Total Spent: ₹{summary.total_spent}</div>
+    <div className="kpi-grid">
+      <div className="kpi-card">
+        <span className="kpi-label">Total Rides</span>
+        <span className="kpi-value">{summary.total_rides}</span>
+      </div>
+
+      <div className="kpi-card">
+        <span className="kpi-label">Completed</span>
+        <span className="kpi-value">{summary.completed_rides}</span>
+      </div>
+
+      <div className="kpi-card">
+        <span className="kpi-label">Cancelled</span>
+        <span className="kpi-value">{summary.cancelled_rides}</span>
+      </div>
+
+      <div className="kpi-card highlight">
+        <span className="kpi-label">Total Spent</span>
+        <span className="kpi-value">₹{summary.total_spent}</span>
+      </div>
     </div>
   );
 };

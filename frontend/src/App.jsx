@@ -13,7 +13,6 @@ import RideSummary from "./pages/RideSummary";
 import RideSuccess from "./pages/RideSuccess";
 
 /* User */
-import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
 import UserDashboard from "./user/pages/UserDashboard";
 
@@ -38,12 +37,12 @@ function App() {
         <Route path="ride-summary" element={<RideSummary />} />
         <Route path="ride-success" element={<RideSuccess />} />
 
-        {/* Protected User Pages */}
+        {/* ================= USER ================= */}
         <Route
           path="dashboard"
           element={
-            <ProtectedRoute role="user">
-              <Dashboard />
+            <ProtectedRoute>
+              <UserDashboard />
             </ProtectedRoute>
           }
         />
@@ -51,17 +50,8 @@ function App() {
         <Route
           path="profile"
           element={
-            <ProtectedRoute role="user">
+            <ProtectedRoute>
               <Profile />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="user/dashboard"
-          element={
-            <ProtectedRoute role="user">
-              <UserDashboard />
             </ProtectedRoute>
           }
         />
@@ -71,7 +61,7 @@ function App() {
       <Route
         path="/admin"
         element={
-          <ProtectedRoute role="admin">
+          <ProtectedRoute>
             <AdminLayout />
           </ProtectedRoute>
         }
@@ -83,7 +73,7 @@ function App() {
       <Route
         path="/driver/dashboard"
         element={
-          <ProtectedRoute role="driver">
+          <ProtectedRoute>
             <DriverDashboard />
           </ProtectedRoute>
         }

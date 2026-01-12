@@ -53,12 +53,14 @@ export const AuthProvider = ({ children }) => {
       ...res.data,
       role: res.data.role ?? prev?.role,
     }));
-  } catch {
-    logout();
+  } catch (err) {
+    console.warn("refreshUser failed — keeping session alive", err);
+    // ❌ DO NOT logout here
   } finally {
-    setLoading(false); // 🔴 CRITICAL
+    setLoading(false);
   }
 };
+
 
 
   useEffect(() => {
