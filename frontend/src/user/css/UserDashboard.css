@@ -70,3 +70,10 @@
 .active-ride-card h3 {
   margin-bottom: 12px;
 }
+
+.refresh-indicator {
+  display: inline-block;
+  min-width: 80px; /* prevents layout shift */
+  font-size: 12px;
+  opacity: 0.6;
+}

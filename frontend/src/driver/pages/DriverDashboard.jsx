@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
+
 import { fetchDriverOverview } from "../api/driverDashboardApi";
 import { fetchDriverRides } from "../api/driverRidesApi";
 import { fetchDriverEarningsDetails } from "../api/driverEarningsApi";
@@ -14,6 +15,7 @@ import EmptyState from "../components/EmptyState";
 import EarningsRangeSelector from "../components/EarningsRangeSelector";
 
 import { getDateRangeFromSelection } from "../../utils/earningsDateRange";
+import usePolling from "../../hooks/usePolling";
 
 import "../styles/driverDashboard.css";
 
@@ -21,7 +23,10 @@ const DriverDashboard = () => {
   const [data, setData] = useState(null);
   const [rides, setRides] = useState([]);
   const [earningsData, setEarningsData] = useState(null);
-  const [loading, setLoading] = useState(true);
+
+  // ✅ Split loading states (CRITICAL)
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
 
   const [earningsRange, setEarningsRange] = useState("7d");
@@ -38,64 +43,86 @@ const DriverDashboard = () => {
       ? customRange
       : getDateRangeFromSelection(earningsRange);
 
-  const loadDashboard = async () => {
-    try {
-      setLoading(true);
-      setError(null);
+  // ============================
+  // CENTRALIZED FETCH (NO BLINK)
+  // ============================
+  const fetchDashboardData = async () => {
+  const isInitialLoad = initialLoading;
 
-      // Guard: do not call API until both custom dates exist
+  try {
+    if (isInitialLoad) {
+      setInitialLoading(true);
+      setError(null);
+    } else {
+      setRefreshing(true);
+    }
+
+    if (
+      earningsRange === "custom" &&
+      (!startDate || !endDate)
+    ) {
+      return;
+    }
+
+    const [overview, driverRides, earnings] =
+      await Promise.all([
+        fetchDriverOverview(),
+        fetchDriverRides(),
+        fetchDriverEarningsDetails({
+          startDate,
+          endDate,
+        }),
+      ]);
+
+    setData((prev) => prev ?? overview);
+    setRides(driverRides);
+
+    setEarningsData((prev) => {
+      const next = earnings.data.map((item) => ({
+        date: item.period,
+        total: item.earnings,
+        rides: item.rides,
+      }));
+
       if (
-        earningsRange === "custom" &&
-        (!startDate || !endDate)
+        prev &&
+        JSON.stringify(prev.days) === JSON.stringify(next)
       ) {
-        setEarningsData({ days: [] });
-        setLoading(false);
-        return;
+        return prev;
       }
 
-      const [overview, driverRides, earnings] =
-        await Promise.all([
-          fetchDriverOverview(),
-          fetchDriverRides(),
-          fetchDriverEarningsDetails({
-            startDate,
-            endDate,
-          }),
-        ]);
-
-      setData(overview);
-      setRides(driverRides);
-
-      // Transform backend response → chart/table format
-      const chartData = {
-        days: earnings.data.map((item) => ({
-          date: item.period,
-          total: item.earnings,
-          rides: item.rides,
-        })),
-      };
-
-      setEarningsData(chartData);
-    } catch (err) {
-      console.error("Driver dashboard load failed:", err);
+      return { days: next };
+    });
+  } catch (err) {
+    console.error("Driver dashboard load failed:", err);
+    if (isInitialLoad) {
       setError("We couldn’t load your dashboard right now.");
-    } finally {
-      setLoading(false);
     }
-  };
+  } finally {
+    if (isInitialLoad) {
+      setInitialLoading(false);
+    } else {
+      setRefreshing(false);
+    }
+  }
+};
 
-  // Reload when range OR custom dates change
-  useEffect(() => {
-    loadDashboard();
-  }, [earningsRange, customRange]);
 
-  if (loading) return <DriverDashboardSkeleton />;
+  // ============================
+  // STEP 9.11 — AUTO REFRESH
+  // ============================
+  usePolling(fetchDashboardData, 10000, true);
+
+  // ============================
+  // UI STATES
+  // ============================
+  if (initialLoading) return <DriverDashboardSkeleton />;
 
   if (error) {
     return (
       <DriverDashboardError
         message={error}
-        onRetry={loadDashboard}
+        onRetry={fetchDashboardData}
       />
     );
   }
@@ -108,7 +135,17 @@ const DriverDashboard = () => {
 
   return (
     <div className="driver-dashboard">
-      <h1>Driver Dashboard</h1>
+      <div className="dashboard-header">
+        <h1>Driver Dashboard</h1>
+
+        {/* Optional subtle refresh indicator */}
+        {refreshing && (
+          <span className="refresh-indicator">
+            Updating…
+          </span>
+        )}
+      </div>
+
       <DriverOnlineToggle />
 
       <div className="kpi-grid">
@@ -130,7 +167,7 @@ const DriverDashboard = () => {
         />
       </div>
 
-      {/* STEP 9.9 — Range Selector + Custom Dates */}
+      {/* STEP 9.9 — Range Selector */}
       <EarningsRangeSelector
         value={earningsRange}
         onChange={setEarningsRange}
@@ -146,7 +183,7 @@ const DriverDashboard = () => {
       {activeRide ? (
         <ActiveRidePanel
           ride={activeRide}
-          onRefresh={loadDashboard}
+          onRefresh={fetchDashboardData}
         />
       ) : (
         <EmptyState
