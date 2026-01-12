@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from sqlalchemy import func
+
 from app.db.session import get_db
 from app.api.dependencies import get_current_driver
 from app.db.models.ride import Ride
@@ -8,10 +9,14 @@ from app.db.models.payment import Payment
 
 router = APIRouter(prefix="/dashboard", tags=["Driver Dashboard"])
 
+
+# ============================
+# DRIVER DASHBOARD OVERVIEW
+# ============================
 @router.get("/overview")
 def driver_dashboard_overview(
     db: Session = Depends(get_db),
-    current_driver = Depends(get_current_driver)
+    current_driver=Depends(get_current_driver),
 ):
     total_rides = db.query(Ride).filter(
         Ride.driver_id == current_driver.id
@@ -19,20 +24,24 @@ def driver_dashboard_overview(
 
     completed_rides = db.query(Ride).filter(
         Ride.driver_id == current_driver.id,
-        Ride.status == "COMPLETED"
+        Ride.status == "completed"
     ).count()
 
     active_rides = db.query(Ride).filter(
         Ride.driver_id == current_driver.id,
-        Ride.status.in_(["ASSIGNED", "ACCEPTED", "STARTED"])
+        Ride.status.in_(["accepted", "arriving", "ongoing"])
     ).count()
 
-    total_earnings = db.query(func.coalesce(func.sum(Payment.amount), 0)).filter(
+    total_earnings = db.query(
+        func.coalesce(func.sum(Payment.amount), 0)
+    ).filter(
         Payment.driver_id == current_driver.id,
         Payment.status == "PAID"
     ).scalar()
 
-    today_earnings = db.query(func.coalesce(func.sum(Payment.amount), 0)).filter(
+    today_earnings = db.query(
+        func.coalesce(func.sum(Payment.amount), 0)
+    ).filter(
         Payment.driver_id == current_driver.id,
         Payment.status == "PAID",
         func.date(Payment.created_at) == func.current_date()
@@ -44,4 +53,44 @@ def driver_dashboard_overview(
         "active_rides": active_rides,
         "total_earnings": float(total_earnings),
         "today_earnings": float(today_earnings),
+    }
+
+
+# ======================================
+# DRIVER ACTIVE RIDE (STEP 9.10)
+# ======================================
+@router.get("/active-ride")
+def get_driver_active_ride(
+    db: Session = Depends(get_db),
+    current_driver=Depends(get_current_driver),
+):
+    """
+    Returns the driver's current active ride.
+    Safe for polling every 10 seconds.
+    """
+
+    active_statuses = ["accepted", "arriving", "ongoing"]
+
+    ride = (
+        db.query(Ride)
+        .filter(
+            Ride.driver_id == current_driver.id,
+            Ride.status.in_(active_statuses),
+        )
+        .order_by(Ride.created_at.desc())
+        .first()
+    )
+
+    if not ride:
+        return {"has_active_ride": False}
+
+    return {
+        "has_active_ride": True,
+        "ride": {
+            "ride_id": ride.id,
+            "status": ride.status,
+            "pickup_location": ride.pickup_location,
+            "drop_location": ride.drop_location,
+            "created_at": ride.created_at,
+        },
     }

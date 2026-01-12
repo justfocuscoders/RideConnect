@@ -18,8 +18,11 @@ class RideOut(BaseModel):
     drop_location: str
     status: str
     distance_km: float
-    estimated_fare: int
+    estimated_fare: Optional[int] = None
     created_at: datetime
+
+    class Config:
+        from_attributes = True
 
 
 class RideStatus(str, Enum):

@@ -2,7 +2,8 @@ import api from "../../services/api";
 
 // Fetch all rides assigned to the driver
 export const fetchDriverRides = async () => {
-  const res = await api.get("/drivers/rides");
+  const res = await api.get("/rides")
+
   return res.data;
 };
 

@@ -1,6 +1,7 @@
 import api from "../../services/api";
 
 export const fetchDriverOverview = async () => {
-  const res = await api.get("/drivers/dashboard/overview");
+  const res = await api.get("/dashboard/overview")
+
   return res.data;
 };

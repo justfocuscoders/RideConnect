@@ -7,7 +7,8 @@ from .rides import router as rides_router
 from .status import router as status_router
 from .active_ride import router as active_ride_router
 
-router = APIRouter(prefix="/drivers", tags=["Drivers"])
+router = APIRouter(tags=["Drivers"])
+
 
 router.include_router(profile_router)
 router.include_router(dashboard_router)
