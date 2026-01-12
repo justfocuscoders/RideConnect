@@ -10,6 +10,7 @@ import {
 import UserKpiCards from "../components/UserKpiCards";
 import UserRidesTable from "../components/UserRidesTable";
 import UserPaymentsTable from "../components/UserPaymentsTable";
+import ActiveRideCard from "../components/ActiveRideCard";
 
 const UserDashboard = () => {
   const [summary, setSummary] = useState(null);
@@ -47,35 +48,38 @@ const UserDashboard = () => {
   }
 
   return (
-  <div className="user-dashboard">
-    <div className="dashboard-header">
-      <h1>User Dashboard</h1>
-      <p className="dashboard-subtitle">
-        Overview of your rides and payments
-      </p>
-    </div>
+    <div className="user-dashboard">
+      {/* HEADER */}
+      <div className="dashboard-header">
+        <h1>User Dashboard</h1>
+        <p className="dashboard-subtitle">
+          Overview of your rides and payments
+        </p>
+      </div>
 
-    {/* KPI GRID */}
-    <UserKpiCards summary={summary} />
+      {/* ACTIVE RIDE */}
+      <ActiveRideCard />
 
-    {/* RIDES */}
-    <div className="dashboard-section">
-      <h2>Recent Rides</h2>
-      <div className="dashboard-card">
-        <UserRidesTable rides={rides} />
+      {/* KPI GRID */}
+      <UserKpiCards summary={summary} />
+
+      {/* RIDES */}
+      <div className="dashboard-section">
+        <h2>Recent Rides</h2>
+        <div className="dashboard-card">
+          <UserRidesTable rides={rides} />
+        </div>
+      </div>
+
+      {/* PAYMENTS */}
+      <div className="dashboard-section">
+        <h2>Payments</h2>
+        <div className="dashboard-card">
+          <UserPaymentsTable payments={payments} />
+        </div>
       </div>
     </div>
-
-    {/* PAYMENTS */}
-    <div className="dashboard-section">
-      <h2>Payments</h2>
-      <div className="dashboard-card">
-        <UserPaymentsTable payments={payments} />
-      </div>
-    </div>
-  </div>
-);
-
+  );
 };
 
 export default UserDashboard;
