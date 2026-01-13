@@ -109,8 +109,8 @@ def get_user_active_ride(db: Session, user_id: int):
             "status": active_ride.status,
             "pickup_location": active_ride.pickup_location,
             # ✅ FIX: column is dropoff_location, API returns drop_location
-            "drop_location": active_ride.dropoff_location,
-            "fare_estimate": float(active_ride.fare or 0),
+            "drop_location": active_ride.drop_location,
+            "fare_estimate": float(active_ride.estimated_fare or 0),
             "created_at": active_ride.created_at,
             "driver": (
                 {

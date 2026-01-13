@@ -16,28 +16,29 @@ import EarningsRangeSelector from "../components/EarningsRangeSelector";
 
 import { getDateRangeFromSelection } from "../../utils/earningsDateRange";
 import usePolling from "../../hooks/usePolling";
+import { useWebSocket } from "../../hooks/useWebSocket";
 
 import "../styles/driverDashboard.css";
 
 const DriverDashboard = () => {
+  // ✅ STEP 9.12.2 — WebSocket (PASSIVE, NO UI MUTATION)
+  useWebSocket();
+
   const [data, setData] = useState(null);
   const [rides, setRides] = useState([]);
   const [earningsData, setEarningsData] = useState(null);
 
-  // ✅ Split loading states (CRITICAL)
   const [initialLoading, setInitialLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
 
   const [earningsRange, setEarningsRange] = useState("7d");
 
-  // STEP 9.9 — custom date range state
   const [customRange, setCustomRange] = useState({
     startDate: "",
     endDate: "",
   });
 
-  // Resolve start/end dates
   const { startDate, endDate } =
     earningsRange === "custom"
       ? customRange
@@ -47,66 +48,65 @@ const DriverDashboard = () => {
   // CENTRALIZED FETCH (NO BLINK)
   // ============================
   const fetchDashboardData = async () => {
-  const isInitialLoad = initialLoading;
+    const isInitialLoad = initialLoading;
 
-  try {
-    if (isInitialLoad) {
-      setInitialLoading(true);
-      setError(null);
-    } else {
-      setRefreshing(true);
-    }
-
-    if (
-      earningsRange === "custom" &&
-      (!startDate || !endDate)
-    ) {
-      return;
-    }
-
-    const [overview, driverRides, earnings] =
-      await Promise.all([
-        fetchDriverOverview(),
-        fetchDriverRides(),
-        fetchDriverEarningsDetails({
-          startDate,
-          endDate,
-        }),
-      ]);
-
-    setData((prev) => prev ?? overview);
-    setRides(driverRides);
-
-    setEarningsData((prev) => {
-      const next = earnings.data.map((item) => ({
-        date: item.period,
-        total: item.earnings,
-        rides: item.rides,
-      }));
-
-      if (
-        prev &&
-        JSON.stringify(prev.days) === JSON.stringify(next)
-      ) {
-        return prev;
+    try {
+      if (isInitialLoad) {
+        setInitialLoading(true);
+        setError(null);
+      } else {
+        setRefreshing(true);
       }
 
-      return { days: next };
-    });
-  } catch (err) {
-    console.error("Driver dashboard load failed:", err);
-    if (isInitialLoad) {
-      setError("We couldn’t load your dashboard right now.");
-    }
-  } finally {
-    if (isInitialLoad) {
-      setInitialLoading(false);
-    } else {
-      setRefreshing(false);
-    }
-  }
-};
+      if (
+        earningsRange === "custom" &&
+        (!startDate || !endDate)
+      ) {
+        return;
+      }
 
+      const [overview, driverRides, earnings] =
+        await Promise.all([
+          fetchDriverOverview(),
+          fetchDriverRides(),
+          fetchDriverEarningsDetails({
+            startDate,
+            endDate,
+          }),
+        ]);
+
+      setData((prev) => prev ?? overview);
+      setRides(driverRides);
+
+      setEarningsData((prev) => {
+        const next = earnings.data.map((item) => ({
+          date: item.period,
+          total: item.earnings,
+          rides: item.rides,
+        }));
+
+        if (
+          prev &&
+          JSON.stringify(prev.days) === JSON.stringify(next)
+        ) {
+          return prev;
+        }
+
+        return { days: next };
+      });
+    } catch (err) {
+      console.error("Driver dashboard load failed:", err);
+      if (isInitialLoad) {
+        setError("We couldn’t load your dashboard right now.");
+      }
+    } finally {
+      if (isInitialLoad) {
+        setInitialLoading(false);
+      } else {
+        setRefreshing(false);
+      }
+    }
+  };
 
   // ============================
   // STEP 9.11 — AUTO REFRESH
@@ -137,8 +137,6 @@ const DriverDashboard = () => {
     <div className="driver-dashboard">
       <div className="dashboard-header">
         <h1>Driver Dashboard</h1>
-
-        {/* Optional subtle refresh indicator */}
         {refreshing && (
           <span className="refresh-indicator">
             Updating…
@@ -149,14 +147,8 @@ const DriverDashboard = () => {
       <DriverOnlineToggle />
 
       <div className="kpi-grid">
-        <DriverKPICard
-          title="Total Rides"
-          value={data.total_rides}
-        />
-        <DriverKPICard
-          title="Completed Rides"
-          value={data.completed_rides}
-        />
+        <DriverKPICard title="Total Rides" value={data.total_rides} />
+        <DriverKPICard title="Completed Rides" value={data.completed_rides} />
         <DriverKPICard
           title="Total Earnings"
           value={`₹${data.total_earnings}`}
@@ -167,7 +159,6 @@ const DriverDashboard = () => {
         />
       </div>
 
-      {/* STEP 9.9 — Range Selector */}
       <EarningsRangeSelector
         value={earningsRange}
         onChange={setEarningsRange}
@@ -176,7 +167,6 @@ const DriverDashboard = () => {
         onCustomChange={setCustomRange}
       />
 
-      {/* STEP 9.7 / 9.8 — Chart + Table */}
       <DriverEarningsChart data={earningsData} />
       <DriverEarningsTable data={earningsData} />
 

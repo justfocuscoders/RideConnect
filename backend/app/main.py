@@ -8,6 +8,7 @@ from app.api.auth import router as auth_router
 from app.api.users import router as users_router
 from app.api.drivers import router as drivers_router
 from app.api.admin import router as admin_router
+from app.websockets.routes import router as websocket_router
 
 app = FastAPI(title="RideConnect API")
 
@@ -22,10 +23,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# ✅ NO PREFIXES HERE
 app.include_router(auth_router)
 app.include_router(users_router)
-app.include_router(drivers_router)   # ✅ ONE DRIVER ENTRY POINT
+app.include_router(drivers_router)
 app.include_router(admin_router)
+app.include_router(websocket_router)
 
 Base.metadata.create_all(bind=engine)
 
