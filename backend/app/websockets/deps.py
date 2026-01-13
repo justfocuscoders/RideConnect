@@ -6,22 +6,25 @@ async def get_ws_user(websocket: WebSocket):
     token = websocket.query_params.get("token")
 
     if not token:
-        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
         return None
 
     payload = decode_access_token(token)
     if not payload:
-        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
         return None
 
     role = payload.get("role")
-    entity_id = payload.get("sub")  # ✅ KEEP AS STRING (email)
+
+    if role == "driver":
+        # ✅ Drivers MUST use driver_id
+        entity_id = payload.get("driver_id")
+    else:
+        # ✅ Users use user_id / sub
+        entity_id = payload.get("sub")
 
     if role not in ("user", "driver") or not entity_id:
-        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
         return None
 
     return {
         "role": role,
-        "entity_id": entity_id,  # ✅ string-safe
+        "entity_id": str(entity_id),  # always string-safe
     }

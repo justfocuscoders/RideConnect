@@ -92,7 +92,6 @@ def get_user_active_ride(db: Session, user_id: int):
             Ride.user_id == user_id,
             Ride.status.in_(["requested", "accepted", "arriving", "ongoing"]),
         )
-        # ✅ FIX: Ride has created_at, NOT updated_at
         .order_by(Ride.created_at.desc())
         .first()
     )
@@ -100,7 +99,7 @@ def get_user_active_ride(db: Session, user_id: int):
     if not active_ride:
         return {"has_active_ride": False}
 
-    driver = getattr(active_ride, "driver", None)
+    driver = active_ride.driver
 
     return {
         "has_active_ride": True,
@@ -108,14 +107,13 @@ def get_user_active_ride(db: Session, user_id: int):
             "ride_id": active_ride.id,
             "status": active_ride.status,
             "pickup_location": active_ride.pickup_location,
-            # ✅ FIX: column is dropoff_location, API returns drop_location
             "drop_location": active_ride.drop_location,
             "fare_estimate": float(active_ride.estimated_fare or 0),
             "created_at": active_ride.created_at,
+            # 🔒 SAFE: expose driver only if accepted
             "driver": (
                 {
-                    "name": driver.name,
-                    "phone": driver.phone,
+                    "driver_id": driver.id
                 }
                 if driver
                 else None

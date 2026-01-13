@@ -367,3 +367,90 @@ button:disabled {
   margin: 6px 0;
 }
 
+/* =============================
+   REALTIME RIDE REQUESTS
+   (PHASE 10.1.4)
+============================= */
+
+.ride-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 18px 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+  border-left: 5px solid #2563eb;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.ride-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 36px rgba(15, 23, 42, 0.12);
+}
+
+.ride-card p {
+  font-size: 14px;
+  color: #334155;
+  margin: 4px 0;
+}
+
+.ride-card strong {
+  color: #0f172a;
+}
+
+/* =============================
+   RIDE ACTION BUTTONS
+============================= */
+
+.ride-card .actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.ride-card .actions button {
+  flex: 1;
+  padding: 10px 0;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* Accept (disabled for now) */
+.ride-card .actions button:first-child {
+  background: #16a34a;
+}
+
+.ride-card .actions button:first-child:disabled {
+  background: #86efac;
+  color: #14532d;
+}
+
+/* Reject (disabled for now) */
+.ride-card .actions button:last-child {
+  background: #dc2626;
+}
+
+.ride-card .actions button:last-child:disabled {
+  background: #fecaca;
+  color: #7f1d1d;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logout-btn {
+  padding: 6px 14px;
+  background: #ef4444;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.logout-btn:hover {
+  background: #dc2626;
+}

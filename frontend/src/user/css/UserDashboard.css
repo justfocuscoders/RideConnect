@@ -1,79 +1,269 @@
+/* =============================
+   BASE LAYOUT
+============================= */
+
 .user-dashboard {
-  padding: 24px;
+  padding: 28px 24px;
   max-width: 1200px;
   margin: 0 auto;
+  background: #f8fafc;
 }
 
 .user-dashboard h1 {
-  font-size: 24px;
-  font-weight: 600;
-  margin-bottom: 20px;
-}
-
-.dashboard-section {
-  margin-top: 32px;
-}
-
-.dashboard-section h2 {
-  font-size: 18px;
-  font-weight: 600;
-  margin-bottom: 12px;
-}
-
-/* Card wrapper */
-.dashboard-card {
-  background: #ffffff;
-  border-radius: 14px;
-  padding: 20px;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
-}
-
-/* Tables spacing */
-.dashboard-table {
-  margin-top: 12px;
-}
-
-/* Loading / error states */
-.dashboard-loading,
-.dashboard-error {
-  text-align: center;
-  padding: 40px;
-  font-size: 16px;
-  color: #555;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .user-dashboard {
-    padding: 16px;
-  }
-
-  .dashboard-card {
-    padding: 16px;
-  }
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 4px;
+  color: #0f172a;
 }
 
 .dashboard-header {
-  margin-bottom: 24px;
+  margin-bottom: 28px;
 }
 
 .dashboard-subtitle {
-  color: #6b7280;
+  color: #64748b;
   font-size: 14px;
-  margin-top: 4px;
-}
-
-.active-ride-card {
-  border-left: 6px solid #2563eb;
-}
-
-.active-ride-card h3 {
-  margin-bottom: 12px;
 }
 
 .refresh-indicator {
   display: inline-block;
-  min-width: 80px; /* prevents layout shift */
+  min-width: 80px;
   font-size: 12px;
   opacity: 0.6;
+  margin-top: 6px;
+}
+
+/* =============================
+   SECTIONS
+============================= */
+
+.dashboard-section {
+  margin-top: 36px;
+}
+
+.dashboard-section h2 {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 14px;
+  color: #0f172a;
+}
+
+/* =============================
+   CARD SYSTEM
+============================= */
+
+.dashboard-card {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 22px;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.dashboard-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.12);
+}
+
+/* =============================
+   CREATE RIDE (BOOK RIDE)
+============================= */
+
+.create-ride-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+  align-items: end;
+}
+
+.create-ride-form input {
+  height: 44px;
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  font-size: 14px;
+  background: #f8fafc;
+  transition: border 0.2s ease, box-shadow 0.2s ease;
+}
+
+.create-ride-form input:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  background: #ffffff;
+}
+
+.create-ride-form button {
+  height: 44px;
+  border-radius: 12px;
+  background: linear-gradient(
+    135deg,
+    #2563eb,
+    #1d4ed8
+  );
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.create-ride-form button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35);
+}
+
+.create-ride-form button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.form-error {
+  grid-column: 1 / -1;
+  font-size: 13px;
+  color: #dc2626;
+  margin-top: -4px;
+}
+
+/* =============================
+   ACTIVE RIDE CARD
+============================= */
+
+.active-ride-card {
+  border-left: 6px solid #2563eb;
+  background: linear-gradient(
+    180deg,
+    #ffffff,
+    #f8fafc
+  );
+}
+
+.active-ride-card h3 {
+  margin-bottom: 10px;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.active-ride-card p {
+  font-size: 14px;
+  color: #334155;
+  margin: 6px 0;
+}
+
+.active-ride-card strong {
+  color: #0f172a;
+}
+
+/* =============================
+   TABLES
+============================= */
+
+.dashboard-table {
+  margin-top: 12px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #ffffff;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+thead {
+  background: #f1f5f9;
+}
+
+th,
+td {
+  padding: 14px 16px;
+  font-size: 14px;
+  text-align: left;
+}
+
+th {
+  color: #475569;
+  font-weight: 600;
+}
+
+td {
+  color: #0f172a;
+  border-top: 1px solid #e2e8f0;
+}
+
+/* =============================
+   STATUS BADGES
+============================= */
+
+.status-badge {
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 999px;
+  text-transform: capitalize;
+}
+
+.status-badge.requested {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.status-badge.accepted {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.status-badge.completed {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.status-badge.cancelled {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+/* =============================
+   LOADING / ERROR
+============================= */
+
+.dashboard-loading,
+.dashboard-error {
+  text-align: center;
+  padding: 60px 20px;
+  font-size: 16px;
+  color: #64748b;
+}
+
+/* =============================
+   RESPONSIVE
+============================= */
+
+@media (max-width: 768px) {
+  .user-dashboard {
+    padding: 18px;
+  }
+
+  .dashboard-card {
+    padding: 18px;
+  }
+
+  .create-ride-form {
+    grid-template-columns: 1fr;
+  }
+}
+
+.logout-btn {
+  background: #e53935;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.logout-btn:hover {
+  background: #c62828;
 }

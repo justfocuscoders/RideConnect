@@ -4,7 +4,7 @@ from fastapi import WebSocket
 
 class ConnectionManager:
     def __init__(self):
-        # role -> entity_id (str, e.g. email) -> List[WebSocket]
+        # role -> entity_id (e.g. user_id / driver_id) -> List[WebSocket]
         self.active_connections: Dict[str, Dict[str, List[WebSocket]]] = {
             "user": {},
             "driver": {},
@@ -13,19 +13,18 @@ class ConnectionManager:
     async def connect(self, websocket: WebSocket, role: str, entity_id: str):
         await websocket.accept()
 
-        if entity_id not in self.active_connections[role]:
-            self.active_connections[role][entity_id] = []
-
-        self.active_connections[role][entity_id].append(websocket)
+        role_connections = self.active_connections.setdefault(role, {})
+        role_connections.setdefault(entity_id, []).append(websocket)
 
     def disconnect(self, websocket: WebSocket, role: str, entity_id: str):
-        connections = self.active_connections.get(role, {}).get(entity_id, [])
+        role_connections = self.active_connections.get(role, {})
+        connections = role_connections.get(entity_id, [])
 
         if websocket in connections:
             connections.remove(websocket)
 
         if not connections:
-            self.active_connections[role].pop(entity_id, None)
+            role_connections.pop(entity_id, None)
 
     async def send_personal_message(
         self, message: dict, role: str, entity_id: str
@@ -38,6 +37,21 @@ class ConnectionManager:
         for connections in self.active_connections.get(role, {}).values():
             for connection in connections:
                 await connection.send_json(message)
+
+    # ============================
+    # Phase 10.1.3 helper
+    # ============================
+    async def broadcast_new_ride(self, ride: dict):
+        """
+        Broadcast a newly created ride to all connected drivers.
+        """
+        await self.broadcast_to_role(
+            {
+                "event": "ride_created",
+                "data": ride,
+            },
+            role="driver",
+        )
 
 
 manager = ConnectionManager()

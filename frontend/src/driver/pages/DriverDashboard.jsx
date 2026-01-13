@@ -1,8 +1,12 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 
 import { fetchDriverOverview } from "../api/driverDashboardApi";
 import { fetchDriverRides } from "../api/driverRidesApi";
 import { fetchDriverEarningsDetails } from "../api/driverEarningsApi";
+import {
+  fetchAvailableRides,
+  acceptRide,
+} from "../api/driverAvailableRidesApi";
 
 import DriverKPICard from "../components/DriverKPICard";
 import ActiveRidePanel from "../components/ActiveRidePanel";
@@ -21,9 +25,45 @@ import { useWebSocket } from "../../hooks/useWebSocket";
 import "../styles/driverDashboard.css";
 
 const DriverDashboard = () => {
-  // ✅ STEP 9.12.2 — WebSocket (PASSIVE, NO UI MUTATION)
-  useWebSocket();
+  // ============================
+  // LOGOUT
+  // ============================
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    window.location.href = "/login";
+  };
 
+  // ============================
+  // REALTIME — AVAILABLE RIDES
+  // ============================
+  const [availableRides, setAvailableRides] = useState([]);
+
+  const handleSocketMessage = useCallback((payload) => {
+    switch (payload.event) {
+      case "ride_created":
+        setAvailableRides((prev) => {
+          if (prev.some((r) => r.id === payload.data.id)) return prev;
+          return [payload.data, ...prev];
+        });
+        break;
+
+      case "ride_accepted":
+        setAvailableRides((prev) =>
+          prev.filter((r) => r.id !== payload.data.ride_id)
+        );
+        break;
+
+      default:
+        break;
+    }
+  }, []);
+
+  useWebSocket(handleSocketMessage);
+
+  // ============================
+  // DASHBOARD STATE
+  // ============================
   const [data, setData] = useState(null);
   const [rides, setRides] = useState([]);
   const [earningsData, setEarningsData] = useState(null);
@@ -33,7 +73,6 @@ const DriverDashboard = () => {
   const [error, setError] = useState(null);
 
   const [earningsRange, setEarningsRange] = useState("7d");
-
   const [customRange, setCustomRange] = useState({
     startDate: "",
     endDate: "",
@@ -45,71 +84,56 @@ const DriverDashboard = () => {
       : getDateRangeFromSelection(earningsRange);
 
   // ============================
-  // CENTRALIZED FETCH (NO BLINK)
+  // CENTRALIZED FETCH
   // ============================
   const fetchDashboardData = async () => {
-    const isInitialLoad = initialLoading;
-
     try {
-      if (isInitialLoad) {
-        setInitialLoading(true);
-        setError(null);
-      } else {
-        setRefreshing(true);
-      }
+      initialLoading ? setInitialLoading(true) : setRefreshing(true);
+      setError(null);
 
-      if (
-        earningsRange === "custom" &&
-        (!startDate || !endDate)
-      ) {
-        return;
-      }
+      if (earningsRange === "custom" && (!startDate || !endDate)) return;
 
-      const [overview, driverRides, earnings] =
-        await Promise.all([
-          fetchDriverOverview(),
-          fetchDriverRides(),
-          fetchDriverEarningsDetails({
-            startDate,
-            endDate,
-          }),
-        ]);
+      const [
+        overview,
+        driverRides,
+        earnings,
+        openRides,
+      ] = await Promise.all([
+        fetchDriverOverview(),
+        fetchDriverRides(),
+        fetchDriverEarningsDetails({ startDate, endDate }),
+        fetchAvailableRides(),
+      ]);
 
-      setData((prev) => prev ?? overview);
+      setData(overview);
       setRides(driverRides);
 
-      setEarningsData((prev) => {
-        const next = earnings.data.map((item) => ({
+      // Merge polling + websocket safely
+      setAvailableRides((prev) => {
+        const ids = new Set(prev.map((r) => r.id));
+        return [...prev, ...openRides.filter((r) => !ids.has(r.id))];
+      });
+
+      setEarningsData({
+        days: earnings.data.map((item) => ({
           date: item.period,
           total: item.earnings,
           rides: item.rides,
-        }));
-
-        if (
-          prev &&
-          JSON.stringify(prev.days) === JSON.stringify(next)
-        ) {
-          return prev;
-        }
-
-        return { days: next };
+        })),
       });
     } catch (err) {
       console.error("Driver dashboard load failed:", err);
-      if (isInitialLoad) {
+      if (initialLoading) {
         setError("We couldn’t load your dashboard right now.");
       }
     } finally {
-      if (isInitialLoad) {
-        setInitialLoading(false);
-      } else {
-        setRefreshing(false);
-      }
+      setInitialLoading(false);
+      setRefreshing(false);
     }
   };
 
   // ============================
-  // STEP 9.11 — AUTO REFRESH
+  // AUTO REFRESH
   // ============================
   usePolling(fetchDashboardData, 10000, true);
 
@@ -128,24 +152,77 @@ const DriverDashboard = () => {
   }
 
   const activeRide = rides.find(
-    (r) =>
-      r.status === "accepted" ||
-      r.status === "in_progress"
+    (r) => r.status === "accepted" || r.status === "in_progress"
   );
 
   return (
     <div className="driver-dashboard">
+      {/* ============================
+          HEADER + LOGOUT
+         ============================ */}
       <div className="dashboard-header">
         <h1>Driver Dashboard</h1>
-        {refreshing && (
-          <span className="refresh-indicator">
-            Updating…
-          </span>
-        )}
+
+        <div className="header-actions">
+          {refreshing && (
+            <span className="refresh-indicator">Updating…</span>
+          )}
+          <button className="logout-btn" onClick={handleLogout}>
+            Logout
+          </button>
+        </div>
       </div>
 
       <DriverOnlineToggle />
 
+      {/* ============================
+          AVAILABLE RIDES
+         ============================ */}
+      {!activeRide && (
+        <>
+          <h3>Available Rides</h3>
+
+          {availableRides.length === 0 ? (
+            <EmptyState
+              title="No ride requests"
+              description="Waiting for users to request rides."
+            />
+          ) : (
+            availableRides.map((ride) => (
+              <div key={ride.id} className="ride-card">
+                <p><strong>Pickup:</strong> {ride.pickup_location}</p>
+                <p><strong>Drop:</strong> {ride.drop_location}</p>
+                <p><strong>Distance:</strong> {ride.distance_km} km</p>
+                <p><strong>Fare:</strong> ₹{ride.estimated_fare}</p>
+
+                <div className="actions">
+                  <button
+                    onClick={async () => {
+                      try {
+                        // Optimistic UI
+                        setAvailableRides((prev) =>
+                          prev.filter((r) => r.id !== ride.id)
+                        );
+                        await acceptRide(ride.id);
+                        fetchDashboardData();
+                      } catch {
+                        alert("Ride already taken");
+                        fetchDashboardData();
+                      }
+                    }}
+                  >
+                    Accept
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </>
+      )}
+
+      {/* ============================
+          KPIs
+         ============================ */}
       <div className="kpi-grid">
         <DriverKPICard title="Total Rides" value={data.total_rides} />
         <DriverKPICard title="Completed Rides" value={data.completed_rides} />
@@ -170,15 +247,10 @@ const DriverDashboard = () => {
       <DriverEarningsChart data={earningsData} />
       <DriverEarningsTable data={earningsData} />
 
-      {activeRide ? (
+      {activeRide && (
         <ActiveRidePanel
           ride={activeRide}
           onRefresh={fetchDashboardData}
-        />
-      ) : (
-        <EmptyState
-          title="No active ride"
-          description="Accept a ride request to start driving."
         />
       )}
     </div>
