@@ -1,8 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../css/UserDashboard.css";
-
-import api from "../../services/api";
 
 import {
   getUserDashboardSummary,
@@ -10,26 +8,31 @@ import {
   getUserPayments,
 } from "../api/userDashboardApi";
 
+import ActiveRideCard from "../components/ActiveRideCard";
 import UserKpiCards from "../components/UserKpiCards";
 import UserRidesTable from "../components/UserRidesTable";
 import UserPaymentsTable from "../components/UserPaymentsTable";
-import ActiveRideCard from "../components/ActiveRideCard";
+import BecomeDriverLink from "../components/BecomeDriverLink";
+import AnimatedSection from "../components/AnimatedSection";
 
+import api from "../../services/api";
 import usePolling from "../../hooks/usePolling";
 
 const UserDashboard = () => {
   const navigate = useNavigate();
 
-  // ============================
-  // AUTH / ROLE
-  // ============================
+  // =====================
+  // AUTH
+  // =====================
   const token = localStorage.getItem("token");
   const payload = token ? JSON.parse(atob(token.split(".")[1])) : null;
   const role = payload?.role;
+  const userName =
+    payload?.name || payload?.full_name || payload?.email || "User";
 
-  // ============================
-  // DASHBOARD DATA
-  // ============================
+  // =====================
+  // DATA
+  // =====================
   const [summary, setSummary] = useState(null);
   const [rides, setRides] = useState([]);
   const [payments, setPayments] = useState([]);
@@ -38,57 +41,46 @@ const UserDashboard = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
 
-  // ============================
-  // CREATE RIDE FORM
-  // ============================
+  // =====================
+  // BOOK RIDE FORM
+  // =====================
   const [pickup, setPickup] = useState("");
   const [drop, setDrop] = useState("");
   const [distance, setDistance] = useState("");
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState(null);
 
-  // ============================
-  // FETCH DASHBOARD DATA
-  // ============================
-  const fetchUserDashboardData = async () => {
-    const isInitial = initialLoading;
-
+  // =====================
+  // FETCH DASHBOARD
+  // =====================
+  const fetchDashboard = async () => {
     try {
-      if (isInitial) {
-        setError(null);
-      } else {
-        setRefreshing(true);
-      }
-
+      setRefreshing(true);
       const [s, r, p] = await Promise.all([
         getUserDashboardSummary(),
         getUserRides(),
         getUserPayments(),
       ]);
-
       setSummary(s);
       setRides(r);
       setPayments(p);
-    } catch (err) {
-      console.error("Dashboard fetch failed", err);
-      if (isInitial) {
-        setError("Failed to load dashboard data");
-      }
+      setError(null);
+    } catch {
+      setError("Failed to load dashboard");
     } finally {
-      if (isInitial) {
-        setInitialLoading(false);
-      } else {
-        setRefreshing(false);
-      }
+      setInitialLoading(false);
+      setRefreshing(false);
     }
   };
 
-  usePolling(fetchUserDashboardData, 10000, true);
+  usePolling(fetchDashboard, 10000, true);
 
-  // ============================
+  // =====================
   // CREATE RIDE
-  // ============================
-  const createRide = async () => {
+  // =====================
+  const createRide = async (e) => {
+    e.preventDefault();
+
     if (!pickup || !drop || !distance) {
       setCreateError("All fields are required");
       return;
@@ -107,27 +99,22 @@ const UserDashboard = () => {
       setPickup("");
       setDrop("");
       setDistance("");
-
-      fetchUserDashboardData();
-    } catch (err) {
-      console.error("Ride creation failed", err);
+      fetchDashboard();
+    } catch {
       setCreateError("Failed to create ride");
     } finally {
       setCreating(false);
     }
   };
 
-  // ============================
+  // =====================
   // LOGOUT
-  // ============================
+  // =====================
   const logout = () => {
     localStorage.removeItem("token");
     navigate("/login");
   };
 
-  // ============================
-  // UI STATES
-  // ============================
   if (initialLoading) {
     return <div className="dashboard-loading">Loading dashboard…</div>;
   }
@@ -139,112 +126,98 @@ const UserDashboard = () => {
   return (
     <div className="user-dashboard">
       {/* HEADER */}
-      <div className="dashboard-header">
-        <div className="dashboard-header-row">
-          <div>
-            <h1>User Dashboard</h1>
-            <p className="dashboard-subtitle">
-              Overview of your rides and payments
-            </p>
-          </div>
+      <header className="dashboard-header">
+        <div>
+          <h1>User Dashboard</h1>
+          <p className="dashboard-subtitle">
+            Welcome, <strong>{userName}</strong>
+          </p>
+        </div>
 
+        <div className="header-actions">
+          <span className="user-name">{userName}</span>
           <button className="logout-btn" onClick={logout}>
             Logout
           </button>
         </div>
+      </header>
 
-        <span className="refresh-indicator">
-          {refreshing ? "Updating…" : ""}
-        </span>
-      </div>
-
-      {/* ============================
-          BECOME DRIVER CTA
-         ============================ */}
-      {role === "user" && (
-        <div className="dashboard-section">
-          <div className="dashboard-card become-driver-card">
-            <h2>Become a Driver</h2>
-            <p>Earn money by accepting ride requests.</p>
-            <button
-              className="primary-btn"
-              onClick={() => navigate("/become-driver")}
-            >
-              Start Driver Registration
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* ============================
-          BOOK RIDE
-         ============================ */}
-      <div className="dashboard-section">
-        <h2>Book a Ride</h2>
-        <div className="dashboard-card">
-          <form
-            className="create-ride-form"
-            onSubmit={(e) => {
-              e.preventDefault();
-              createRide();
-            }}
-          >
-            <input
-              type="text"
-              placeholder="Pickup location"
-              value={pickup}
-              onChange={(e) => setPickup(e.target.value)}
-              required
-            />
-
-            <input
-              type="text"
-              placeholder="Drop location"
-              value={drop}
-              onChange={(e) => setDrop(e.target.value)}
-              required
-            />
-
-            <input
-              type="number"
-              placeholder="Distance (km)"
-              value={distance}
-              onChange={(e) => setDistance(e.target.value)}
-              required
-            />
-
-            {createError && (
-              <p className="form-error">{createError}</p>
-            )}
-
-            <button type="submit" disabled={creating}>
-              {creating ? "Booking…" : "Book Ride"}
-            </button>
-          </form>
-        </div>
-      </div>
+      {refreshing && <div className="refresh-indicator">Updating data…</div>}
 
       {/* ACTIVE RIDE */}
-      <ActiveRideCard />
+      <AnimatedSection delay={0}>
+        <ActiveRideCard />
+      </AnimatedSection>
+
+      {/* BOOK RIDE */}
+      <AnimatedSection delay={0.05}>
+        <section className="dashboard-section primary-booking">
+          <h2>Book a Ride</h2>
+          <div className="dashboard-card booking-card">
+            <form className="create-ride-form" onSubmit={createRide}>
+              <input
+                placeholder="Pickup location"
+                value={pickup}
+                onChange={(e) => setPickup(e.target.value)}
+                required
+              />
+              <input
+                placeholder="Drop location"
+                value={drop}
+                onChange={(e) => setDrop(e.target.value)}
+                required
+              />
+              <input
+                type="number"
+                placeholder="Distance (km)"
+                value={distance}
+                onChange={(e) => setDistance(e.target.value)}
+                required
+              />
+
+              {createError && <p className="form-error">{createError}</p>}
+
+              <button type="submit" disabled={creating}>
+                {creating ? "Booking…" : "Book Ride"}
+              </button>
+            </form>
+          </div>
+        </section>
+      </AnimatedSection>
 
       {/* KPI */}
-      <UserKpiCards summary={summary} />
+      {summary && (
+        <AnimatedSection delay={0.1}>
+          <UserKpiCards summary={summary} />
+        </AnimatedSection>
+      )}
 
       {/* RIDES */}
-      <div className="dashboard-section">
-        <h2>Recent Rides</h2>
-        <div className="dashboard-card">
-          <UserRidesTable rides={rides} />
-        </div>
-      </div>
+      <AnimatedSection delay={0.15}>
+        <section className="dashboard-section">
+          <h2>Recent Rides</h2>
+          <div className="dashboard-card">
+            <UserRidesTable rides={rides} />
+          </div>
+        </section>
+      </AnimatedSection>
 
       {/* PAYMENTS */}
-      <div className="dashboard-section">
-        <h2>Payments</h2>
-        <div className="dashboard-card">
-          <UserPaymentsTable payments={payments} />
-        </div>
-      </div>
+      <AnimatedSection delay={0.2}>
+        <section className="dashboard-section">
+          <h2>Payments</h2>
+          <div className="dashboard-card">
+            <UserPaymentsTable payments={payments} />
+          </div>
+        </section>
+      </AnimatedSection>
+
+      {/* BECOME DRIVER */}
+      {role === "user" && (
+        <AnimatedSection delay={0.25}>
+          <BecomeDriverLink />
+        </AnimatedSection>
+      )}
     </div>
   );
 };

@@ -19,83 +19,95 @@ import UserDashboard from "./user/pages/UserDashboard";
 /* Admin */
 import AdminLayout from "./admin/AdminLayout";
 import AdminDashboard from "./admin/pages/AdminDashboard";
+import AdminDrivers from "./admin/pages/AdminDrivers";
 
 /* Driver */
 import DriverDashboard from "./driver/pages/DriverDashboard";
 
+/* Driver Onboarding */
+import AccountCheck from "./driver-onboarding/pages/AccountCheck";
+import DriverRegister from "./driver-onboarding/pages/DriverRegister";
+import DriverStatus from "./driver-onboarding/pages/DriverStatus";
+
+/* Context */
+import { DriverOnboardingProvider } from "./driver-onboarding/context/DriverOnboardingContext";
+
+/* User Action */
 import BecomeDriver from "./user/pages/BecomeDriver";
-import AdminDrivers from "./admin/pages/AdminDrivers";
-
-
 
 function App() {
   return (
-    <Routes>
-      {/* ================= USER LAYOUT ================= */}
-      <Route path="/" element={<Layout />}>
-        {/* Public */}
-        <Route index element={<Home />} />
-        <Route path="login" element={<Login />} />
-        <Route path="register" element={<Register />} />
-        <Route path="about" element={<About />} />
-        <Route path="book-ride" element={<BookRide />} />
-        <Route path="ride-summary" element={<RideSummary />} />
-        <Route path="ride-success" element={<RideSuccess />} />
-        <Route path="/admin/drivers" element={<AdminDrivers />} />
+    <DriverOnboardingProvider>
+      <Routes>
+        {/* ================= USER LAYOUT ================= */}
+        <Route path="/" element={<Layout />}>
+          {/* Public */}
+          <Route index element={<Home />} />
+          <Route path="login" element={<Login />} />
+          <Route path="register" element={<Register />} />
+          <Route path="about" element={<About />} />
+          <Route path="book-ride" element={<BookRide />} />
+          <Route path="ride-summary" element={<RideSummary />} />
+          <Route path="ride-success" element={<RideSuccess />} />
 
+          {/* Driver Onboarding */}
+          <Route path="driver/onboarding" element={<AccountCheck />} />
+          <Route path="driver/register" element={<DriverRegister />} />
+          <Route path="driver/status" element={<DriverStatus />} />
 
-        {/* ================= USER ================= */}
+          {/* User */}
+          <Route
+            path="dashboard"
+            element={
+              <ProtectedRoute>
+                <UserDashboard />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="profile"
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="become-driver"
+            element={
+              <ProtectedRoute allowedRoles={["user"]}>
+                <BecomeDriver />
+              </ProtectedRoute>
+            }
+          />
+        </Route>
+
+        {/* ================= DRIVER ================= */}
         <Route
-          path="dashboard"
+          path="/driver/dashboard"
           element={
             <ProtectedRoute>
-              <UserDashboard />
+              <DriverDashboard />
             </ProtectedRoute>
           }
         />
 
+        {/* ================= ADMIN ================= */}
         <Route
-          path="profile"
+          path="/admin"
           element={
             <ProtectedRoute>
-              <Profile />
+              <AdminLayout />
             </ProtectedRoute>
           }
-        />
-      </Route>
-
-      {/* ================= ADMIN ================= */}
-      <Route
-        path="/admin"
-        element={
-          <ProtectedRoute>
-            <AdminLayout />
-          </ProtectedRoute>
-        }
-      >
-        <Route index element={<AdminDashboard />} />
-      </Route>
-
-      {/* ================= DRIVER ================= */}
-      <Route
-        path="/driver/dashboard"
-        element={
-          <ProtectedRoute>
-            <DriverDashboard />
-          </ProtectedRoute>
-        }
-      />
-
-      <Route
-  path="/become-driver"
-  element={
-    <ProtectedRoute allowedRoles={["user"]}>
-      <BecomeDriver />
-    </ProtectedRoute>
-  }
-/>
-
-    </Routes>
+        >
+          <Route index element={<AdminDashboard />} />
+          <Route path="drivers" element={<AdminDrivers />} />
+        </Route>
+      </Routes>
+    </DriverOnboardingProvider>
   );
 }
 

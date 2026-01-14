@@ -1,8 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import "../css/BecomeDriver.css";
-
 
 const BecomeDriver = () => {
   const navigate = useNavigate();
@@ -16,8 +15,7 @@ const BecomeDriver = () => {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(false);
-  const [countdown, setCountdown] = useState(3);
+  const [submitted, setSubmitted] = useState(false);
 
   // ============================
   // SUBMIT HANDLER
@@ -26,7 +24,7 @@ const BecomeDriver = () => {
     e.preventDefault();
 
     if (!licenseNumber || !vehicleNumber || !vehicleType) {
-      setError("All fields are required");
+      setError("Please fill all required fields.");
       return;
     }
 
@@ -35,101 +33,94 @@ const BecomeDriver = () => {
       setError(null);
 
       await api.post("/profile", {
-        license_number: licenseNumber,
-        vehicle_number: vehicleNumber,
+        license_number: licenseNumber.trim().toUpperCase(),
+        vehicle_number: vehicleNumber.trim().toUpperCase(),
         vehicle_type: vehicleType,
       });
 
-      setSuccess(true);
-      setLoading(false);
-
-      // Remove token but let user SEE success first
-      localStorage.removeItem("token");
+      setSubmitted(true);
     } catch (err) {
-      console.error("Driver profile creation failed", err);
       setError(
-        err.response?.data?.detail || "Failed to create driver profile"
+        err.response?.data?.detail ||
+          "Something went wrong. Please try again."
       );
+    } finally {
       setLoading(false);
     }
   };
 
   // ============================
-  // AUTO REDIRECT AFTER SUCCESS
-  // ============================
-  useEffect(() => {
-    if (!success) return;
-
-    const timer = setInterval(() => {
-      setCountdown((prev) => prev - 1);
-    }, 1000);
-
-    const redirect = setTimeout(() => {
-      navigate("/login");
-    }, 3000);
-
-    return () => {
-      clearInterval(timer);
-      clearTimeout(redirect);
-    };
-  }, [success, navigate]);
-
-  // ============================
   // UI
   // ============================
   return (
-    <div className="page-container">
-      <h1>Driver Registration</h1>
-      <p>Complete the details below to start driving.</p>
+    <div className="become-driver-page">
+      <div className="driver-card">
+        {/* HEADER */}
+        <div className="driver-header">
+          <button className="back-btn" onClick={() => navigate(-1)}>
+            ← Back
+          </button>
+          <h1>Become a Driver</h1>
+          <p className="subtitle">
+            Provide your vehicle details to apply as a driver.
+          </p>
+        </div>
 
-      <form onSubmit={submitDriverProfile} className="form-card">
-        <input
-          type="text"
-          placeholder="Driving License Number"
-          value={licenseNumber}
-          onChange={(e) => setLicenseNumber(e.target.value)}
-          disabled={success}
-        />
+        {/* FORM */}
+        {!submitted ? (
+          <form onSubmit={submitDriverProfile} className="driver-form">
+            <input
+              type="text"
+              placeholder="Driving License Number"
+              value={licenseNumber}
+              onChange={(e) =>
+                setLicenseNumber(e.target.value.toUpperCase())
+              }
+            />
 
-        <input
-          type="text"
-          placeholder="Vehicle Number"
-          value={vehicleNumber}
-          onChange={(e) => setVehicleNumber(e.target.value)}
-          disabled={success}
-        />
+            <input
+              type="text"
+              placeholder="Vehicle Number"
+              value={vehicleNumber}
+              onChange={(e) =>
+                setVehicleNumber(e.target.value.toUpperCase())
+              }
+            />
 
-        <select
-          value={vehicleType}
-          onChange={(e) => setVehicleType(e.target.value)}
-          disabled={success}
-        >
-          <option value="">Select Vehicle Type</option>
-          <option value="bike">Bike</option>
-          <option value="car">Car</option>
-          <option value="auto">Auto</option>
-        </select>
+            <select
+              value={vehicleType}
+              onChange={(e) => setVehicleType(e.target.value)}
+            >
+              <option value="">Select Vehicle Type</option>
+              <option value="bike">Bike</option>
+              <option value="car">Car</option>
+              <option value="auto">Auto</option>
+            </select>
 
-        {/* ERROR MESSAGE */}
-        {error && <p className="form-error">{error}</p>}
+            {error && <p className="form-error">{error}</p>}
 
-        {/* SUCCESS MESSAGE */}
-        {success && (
-          <div className="form-success">
-            <h3>🎉 Driver profile created!</h3>
+            <button type="submit" disabled={loading}>
+              {loading ? "Submitting…" : "Submit for Verification"}
+            </button>
+          </form>
+        ) : (
+          // SUCCESS STATE
+          <div className="success-box">
+            <h3>✅ Application Submitted</h3>
             <p>
-              Your account has been upgraded to <strong>Driver</strong>.
+              Your driver application is <strong>under verification</strong>.
             </p>
-            <p>Redirecting to login in {countdown} seconds…</p>
+            <p>You can track status from the Driver Dashboard.</p>
+
+            <button
+              className="primary-btn"
+              onClick={() => navigate("/driver/dashboard")}
+            >
+              Go to Driver Dashboard
+            </button>
           </div>
         )}
-
-        {!success && (
-          <button type="submit" disabled={loading}>
-            {loading ? "Submitting…" : "Create Driver Profile"}
-          </button>
-        )}
-      </form>
+      </div>
     </div>
   );
 };

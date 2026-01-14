@@ -22,9 +22,26 @@ import { getDateRangeFromSelection } from "../../utils/earningsDateRange";
 import usePolling from "../../hooks/usePolling";
 import { useWebSocket } from "../../hooks/useWebSocket";
 
+import { useDriverOnboarding } from "../../driver-onboarding/context/DriverOnboardingContext";
+
 import "../styles/driverDashboard.css";
 
 const DriverDashboard = () => {
+  // ============================
+  // DRIVER STATUS (ONBOARDING)
+  // ============================
+  const { driverStatus } = useDriverOnboarding();
+
+  // 🔒 HARD LOCK — BEFORE ANY API / SOCKET LOGIC
+  if (driverStatus === "pending") {
+    return (
+      <DriverDashboardError
+        message="Your driver profile is under verification. You will be notified once approved."
+        onRetry={null}
+      />
+    );
+  }
+
   // ============================
   // USER (FOR NAME DISPLAY)
   // ============================
@@ -50,11 +67,6 @@ const DriverDashboard = () => {
     localStorage.removeItem("user");
     window.location.href = "/login";
   };
-
-  // ============================
-  // VERIFICATION STATE
-  // ============================
-  const [verificationPending, setVerificationPending] = useState(false);
 
   // ============================
   // REALTIME — AVAILABLE RIDES
@@ -83,8 +95,8 @@ const DriverDashboard = () => {
     }
   }, []);
 
-  // 🔐 WebSocket disabled when under verification
-  useWebSocket(handleSocketMessage, !verificationPending);
+  // WebSocket enabled ONLY for verified drivers
+  useWebSocket(handleSocketMessage, driverStatus === "verified");
 
   // ============================
   // DASHBOARD STATE
@@ -150,35 +162,21 @@ const DriverDashboard = () => {
       } else {
         setEarningsData(null);
       }
-    } catch (err) {
-      if (err?.response?.status === 403) {
-        setVerificationPending(true);
-        setError("Your driver account is under verification.");
-      } else {
-        setError("We couldn’t load your dashboard right now.");
-      }
+    } catch {
+      setError("We couldn’t load your dashboard right now.");
     } finally {
       setInitialLoading(false);
       setRefreshing(false);
     }
   };
 
-  // ⏱ Polling disabled when verification pending
-  usePolling(fetchDashboardData, 10000, !verificationPending);
+  // ⏱ Polling ONLY for verified drivers
+  usePolling(fetchDashboardData, 10000, driverStatus === "verified");
 
   // ============================
   // UI STATES
   // ============================
   if (initialLoading) return <DriverDashboardSkeleton />;
-
-  if (verificationPending) {
-    return (
-      <DriverDashboardError
-        message="Your driver account is under verification. Please wait for admin approval."
-        onRetry={null}
-      />
-    );
-  }
 
   if (error) {
     return (
@@ -209,7 +207,7 @@ const DriverDashboard = () => {
          ============================ */}
       <div className="dashboard-header">
         <div>
-          <h1>Welcome, {driverName} 👋</h1>
+          <h1>Welcome, {driverName}</h1>
           <p className="subtext">Driver Dashboard</p>
         </div>
 

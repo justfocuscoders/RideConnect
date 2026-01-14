@@ -350,4 +350,130 @@
   transform: translateY(0);
 }
 
+/* ================= HERO ================= */
 
+.hero {
+  position: relative;
+  min-height: 90vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  overflow: hidden;
+  background: linear-gradient(180deg, #eaf5ff, #ffffff);
+}
+
+/* Background city */
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  background: url("../images/city-bg.svg") center bottom / cover no-repeat;
+  opacity: 0.2;
+  z-index: 0;
+}
+
+/* Content */
+.hero-content {
+  position: relative;
+  z-index: 2;
+  max-width: 720px;
+  padding: 0 16px;
+}
+
+.hero h1 {
+  font-size: 48px;
+  margin-bottom: 16px;
+  color: #0f172a;
+}
+
+.tagline {
+  font-size: 18px;
+  color: #475569;
+  margin-bottom: 32px;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+}
+
+/* Buttons */
+.btn {
+  padding: 12px 22px;
+  border-radius: 8px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.btn.primary {
+  background: #2563eb;
+  color: white;
+}
+
+.btn.secondary {
+  border: 2px solid #2563eb;
+  color: #2563eb;
+}
+
+/* ================= VEHICLES ================= */
+
+.vehicle {
+  position: absolute;
+  bottom: 10%;
+  opacity: 0.9;
+  z-index: 1;
+}
+
+/* Car animation */
+.car {
+  width: 140px;
+  left: -160px;
+  animation: driveCar 18s linear infinite;
+}
+
+/* Bike animation */
+.bike {
+  width: 90px;
+  bottom: 5%;
+  left: -100px;
+  animation: rideBike 12s linear infinite;
+}
+
+@keyframes driveCar {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(120vw);
+  }
+}
+
+@keyframes rideBike {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(110vw);
+  }
+}
+
+/* ================= RESPONSIVE ================= */
+
+@media (max-width: 768px) {
+  .hero h1 {
+    font-size: 34px;
+  }
+
+  .car {
+    width: 100px;
+  }
+
+  .bike {
+    width: 70px;
+  }
+}
+
+.hero {
+  padding-top: 6rem;
+}
