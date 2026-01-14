@@ -1,9 +1,18 @@
 from sqlalchemy.orm import Session
+
 from app.db.models.driver import Driver
+from app.db.models.user import User
 from app.schemas.driver import DriverCreate
 
 
 def create_driver(db: Session, user_id: int, data: DriverCreate) -> Driver:
+    """
+    Create driver profile and upgrade user role to 'driver'
+    """
+
+    # ============================
+    # CREATE DRIVER PROFILE
+    # ============================
     driver = Driver(
         user_id=user_id,
         license_number=data.license_number,
@@ -11,8 +20,28 @@ def create_driver(db: Session, user_id: int, data: DriverCreate) -> Driver:
         vehicle_type=data.vehicle_type,
     )
     db.add(driver)
+
+    # ============================
+    # 🔑 CRITICAL FIX: UPDATE USER ROLE
+    # ============================
+    user = (
+        db.query(User)
+        .filter(User.id == user_id)
+        .first()
+    )
+
+    if not user:
+        raise ValueError("User not found while creating driver")
+
+    user.role = "driver"
+    db.add(user)
+
+    # ============================
+    # COMMIT TRANSACTION
+    # ============================
     db.commit()
     db.refresh(driver)
+
     return driver
 
 

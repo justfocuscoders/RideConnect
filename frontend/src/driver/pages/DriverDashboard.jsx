@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 
 import { fetchDriverOverview } from "../api/driverDashboardApi";
 import { fetchDriverRides } from "../api/driverRidesApi";
@@ -26,6 +26,23 @@ import "../styles/driverDashboard.css";
 
 const DriverDashboard = () => {
   // ============================
+  // USER (FOR NAME DISPLAY)
+  // ============================
+  const [driverName, setDriverName] = useState("Driver");
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      try {
+        const parsed = JSON.parse(storedUser);
+        if (parsed?.name) setDriverName(parsed.name);
+      } catch {
+        /* ignore */
+      }
+    }
+  }, []);
+
+  // ============================
   // LOGOUT
   // ============================
   const handleLogout = () => {
@@ -35,11 +52,18 @@ const DriverDashboard = () => {
   };
 
   // ============================
+  // VERIFICATION STATE
+  // ============================
+  const [verificationPending, setVerificationPending] = useState(false);
+
+  // ============================
   // REALTIME — AVAILABLE RIDES
   // ============================
   const [availableRides, setAvailableRides] = useState([]);
 
   const handleSocketMessage = useCallback((payload) => {
+    if (!payload?.event) return;
+
     switch (payload.event) {
       case "ride_created":
         setAvailableRides((prev) => {
@@ -59,12 +83,13 @@ const DriverDashboard = () => {
     }
   }, []);
 
-  useWebSocket(handleSocketMessage);
+  // 🔐 WebSocket disabled when under verification
+  useWebSocket(handleSocketMessage, !verificationPending);
 
   // ============================
   // DASHBOARD STATE
   // ============================
-  const [data, setData] = useState(null);
+  const [overview, setOverview] = useState(null);
   const [rides, setRides] = useState([]);
   const [earningsData, setEarningsData] = useState(null);
 
@@ -84,7 +109,7 @@ const DriverDashboard = () => {
       : getDateRangeFromSelection(earningsRange);
 
   // ============================
-  // CENTRALIZED FETCH
+  // FETCH DASHBOARD DATA
   // ============================
   const fetchDashboardData = async () => {
     try {
@@ -93,37 +118,43 @@ const DriverDashboard = () => {
 
       if (earningsRange === "custom" && (!startDate || !endDate)) return;
 
-      const [
-        overview,
-        driverRides,
-        earnings,
-        openRides,
-      ] = await Promise.all([
-        fetchDriverOverview(),
-        fetchDriverRides(),
-        fetchDriverEarningsDetails({ startDate, endDate }),
-        fetchAvailableRides(),
-      ]);
+      const [overviewRes, ridesRes, earningsRes, openRides] =
+        await Promise.all([
+          fetchDriverOverview(),
+          fetchDriverRides(),
+          fetchDriverEarningsDetails({ startDate, endDate }),
+          fetchAvailableRides(),
+        ]);
 
-      setData(overview);
-      setRides(driverRides);
+      setOverview(overviewRes || null);
+      setRides(Array.isArray(ridesRes) ? ridesRes : []);
 
-      // Merge polling + websocket safely
       setAvailableRides((prev) => {
-        const ids = new Set(prev.map((r) => r.id));
-        return [...prev, ...openRides.filter((r) => !ids.has(r.id))];
+        const existingIds = new Set(prev.map((r) => r.id));
+        return [
+          ...prev,
+          ...(Array.isArray(openRides)
+            ? openRides.filter((r) => !existingIds.has(r.id))
+            : []),
+        ];
       });
 
-      setEarningsData({
-        days: earnings.data.map((item) => ({
-          date: item.period,
-          total: item.earnings,
-          rides: item.rides,
-        })),
-      });
+      if (earningsRes?.data) {
+        setEarningsData({
+          days: earningsRes.data.map((item) => ({
+            date: item.period,
+            total: item.earnings,
+            rides: item.rides,
+          })),
+        });
+      } else {
+        setEarningsData(null);
+      }
     } catch (err) {
-      console.error("Driver dashboard load failed:", err);
-      if (initialLoading) {
+      if (err?.response?.status === 403) {
+        setVerificationPending(true);
+        setError("Your driver account is under verification.");
+      } else {
         setError("We couldn’t load your dashboard right now.");
       }
     } finally {
@@ -132,15 +163,22 @@ const DriverDashboard = () => {
     }
   };
 
-  // ============================
-  // AUTO REFRESH
-  // ============================
-  usePolling(fetchDashboardData, 10000, true);
+  // ⏱ Polling disabled when verification pending
+  usePolling(fetchDashboardData, 10000, !verificationPending);
 
   // ============================
   // UI STATES
   // ============================
   if (initialLoading) return <DriverDashboardSkeleton />;
+
+  if (verificationPending) {
+    return (
+      <DriverDashboardError
+        message="Your driver account is under verification. Please wait for admin approval."
+        onRetry={null}
+      />
+    );
+  }
 
   if (error) {
     return (
@@ -151,17 +189,29 @@ const DriverDashboard = () => {
     );
   }
 
-  const activeRide = rides.find(
-    (r) => r.status === "accepted" || r.status === "in_progress"
+  if (!overview) {
+    return (
+      <DriverDashboardError
+        message="Driver profile not ready yet."
+        onRetry={fetchDashboardData}
+      />
+    );
+  }
+
+  const activeRide = rides.find((r) =>
+    ["accepted", "arriving", "ongoing", "in_progress"].includes(r.status)
   );
 
   return (
     <div className="driver-dashboard">
       {/* ============================
-          HEADER + LOGOUT
+          HEADER
          ============================ */}
       <div className="dashboard-header">
-        <h1>Driver Dashboard</h1>
+        <div>
+          <h1>Welcome, {driverName} 👋</h1>
+          <p className="subtext">Driver Dashboard</p>
+        </div>
 
         <div className="header-actions">
           {refreshing && (
@@ -195,25 +245,22 @@ const DriverDashboard = () => {
                 <p><strong>Distance:</strong> {ride.distance_km} km</p>
                 <p><strong>Fare:</strong> ₹{ride.estimated_fare}</p>
 
-                <div className="actions">
-                  <button
-                    onClick={async () => {
-                      try {
-                        // Optimistic UI
-                        setAvailableRides((prev) =>
-                          prev.filter((r) => r.id !== ride.id)
-                        );
-                        await acceptRide(ride.id);
-                        fetchDashboardData();
-                      } catch {
-                        alert("Ride already taken");
-                        fetchDashboardData();
-                      }
-                    }}
-                  >
-                    Accept
-                  </button>
-                </div>
+                <button
+                  onClick={async () => {
+                    try {
+                      setAvailableRides((prev) =>
+                        prev.filter((r) => r.id !== ride.id)
+                      );
+                      await acceptRide(ride.id);
+                      fetchDashboardData();
+                    } catch {
+                      alert("Ride already taken");
+                      fetchDashboardData();
+                    }
+                  }}
+                >
+                  Accept
+                </button>
               </div>
             ))
           )}
@@ -224,15 +271,15 @@ const DriverDashboard = () => {
           KPIs
          ============================ */}
       <div className="kpi-grid">
-        <DriverKPICard title="Total Rides" value={data.total_rides} />
-        <DriverKPICard title="Completed Rides" value={data.completed_rides} />
+        <DriverKPICard title="Total Rides" value={overview.total_rides} />
+        <DriverKPICard title="Completed Rides" value={overview.completed_rides} />
         <DriverKPICard
           title="Total Earnings"
-          value={`₹${data.total_earnings}`}
+          value={`₹${overview.total_earnings}`}
         />
         <DriverKPICard
           title="Today's Earnings"
-          value={`₹${data.today_earnings}`}
+          value={`₹${overview.today_earnings}`}
         />
       </div>
 
@@ -244,8 +291,12 @@ const DriverDashboard = () => {
         onCustomChange={setCustomRange}
       />
 
-      <DriverEarningsChart data={earningsData} />
-      <DriverEarningsTable data={earningsData} />
+      {earningsData && (
+        <>
+          <DriverEarningsChart data={earningsData} />
+          <DriverEarningsTable data={earningsData} />
+        </>
+      )}
 
       {activeRide && (
         <ActiveRidePanel

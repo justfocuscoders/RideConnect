@@ -7,8 +7,10 @@ from app.api.dependencies import get_current_driver
 from app.db.models.ride import Ride
 from app.db.models.payment import Payment
 
-router = APIRouter(prefix="/dashboard", tags=["Driver Dashboard"])
-
+router = APIRouter(
+    prefix="/dashboard",
+    tags=["Driver Dashboard"]
+)
 
 # ============================
 # DRIVER DASHBOARD OVERVIEW
@@ -18,33 +20,44 @@ def driver_dashboard_overview(
     db: Session = Depends(get_db),
     current_driver=Depends(get_current_driver),
 ):
-    total_rides = db.query(Ride).filter(
-        Ride.driver_id == current_driver.id
-    ).count()
+    total_rides = (
+        db.query(Ride)
+        .filter(Ride.driver_id == current_driver.id)
+        .count()
+    )
 
-    completed_rides = db.query(Ride).filter(
-        Ride.driver_id == current_driver.id,
-        Ride.status == "completed"
-    ).count()
+    completed_rides = (
+        db.query(Ride)
+        .filter(
+            Ride.driver_id == current_driver.id,
+            Ride.status == "completed",
+        )
+        .count()
+    )
 
-    active_rides = db.query(Ride).filter(
-        Ride.driver_id == current_driver.id,
-        Ride.status.in_(["accepted", "arriving", "ongoing"])
-    ).count()
+    active_rides = (
+        db.query(Ride)
+        .filter(
+            Ride.driver_id == current_driver.id,
+            Ride.status.in_(["accepted", "arriving", "ongoing"]),
+        )
+        .count()
+    )
 
-    # ✅ FIX: count all earnings (do NOT filter by PAID)
-    total_earnings = db.query(
-        func.coalesce(func.sum(Payment.amount), 0)
-    ).filter(
-        Payment.driver_id == current_driver.id
-    ).scalar()
+    total_earnings = (
+        db.query(func.coalesce(func.sum(Payment.amount), 0))
+        .filter(Payment.driver_id == current_driver.id)
+        .scalar()
+    )
 
-    today_earnings = db.query(
-        func.coalesce(func.sum(Payment.amount), 0)
-    ).filter(
-        Payment.driver_id == current_driver.id,
-        func.date(Payment.created_at) == func.current_date()
-    ).scalar()
+    today_earnings = (
+        db.query(func.coalesce(func.sum(Payment.amount), 0))
+        .filter(
+            Payment.driver_id == current_driver.id,
+            func.date(Payment.created_at) == func.current_date(),
+        )
+        .scalar()
+    )
 
     return {
         "total_rides": total_rides,
@@ -55,19 +68,14 @@ def driver_dashboard_overview(
     }
 
 
-# ======================================
-# DRIVER ACTIVE RIDE (STEP 9.10)
-# ======================================
+# ============================
+# DRIVER ACTIVE RIDE
+# ============================
 @router.get("/active-ride")
 def get_driver_active_ride(
     db: Session = Depends(get_db),
     current_driver=Depends(get_current_driver),
 ):
-    """
-    Returns the driver's current active ride.
-    Safe for polling every 10 seconds.
-    """
-
     active_statuses = ["accepted", "arriving", "ongoing"]
 
     ride = (

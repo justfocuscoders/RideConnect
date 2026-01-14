@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../css/UserDashboard.css";
 
@@ -19,6 +19,13 @@ import usePolling from "../../hooks/usePolling";
 
 const UserDashboard = () => {
   const navigate = useNavigate();
+
+  // ============================
+  // AUTH / ROLE
+  // ============================
+  const token = localStorage.getItem("token");
+  const payload = token ? JSON.parse(atob(token.split(".")[1])) : null;
+  const role = payload?.role;
 
   // ============================
   // DASHBOARD DATA
@@ -152,6 +159,24 @@ const UserDashboard = () => {
       </div>
 
       {/* ============================
+          BECOME DRIVER CTA
+         ============================ */}
+      {role === "user" && (
+        <div className="dashboard-section">
+          <div className="dashboard-card become-driver-card">
+            <h2>Become a Driver</h2>
+            <p>Earn money by accepting ride requests.</p>
+            <button
+              className="primary-btn"
+              onClick={() => navigate("/become-driver")}
+            >
+              Start Driver Registration
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ============================
           BOOK RIDE
          ============================ */}
       <div className="dashboard-section">
@@ -160,7 +185,7 @@ const UserDashboard = () => {
           <form
             className="create-ride-form"
             onSubmit={(e) => {
-              e.preventDefault(); // ✅ prevents page refresh
+              e.preventDefault();
               createRide();
             }}
           >

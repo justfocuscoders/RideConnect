@@ -1,49 +1,29 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 
 const WS_URL = "ws://127.0.0.1:8000/ws/dashboard";
 
-export const useWebSocket = () => {
+export const useWebSocket = (onMessage) => {
   const socketRef = useRef(null);
-  const reconnectTimeoutRef = useRef(null);
-
-  const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem("token"); // 🔑 FIXED
+    const token = localStorage.getItem("token");
+    if (!token) return;
 
-    if (!token) {
-      console.warn("[WS] No access token found");
-      return;
-    }
+    const ws = new WebSocket(`${WS_URL}?token=${token}`);
+    socketRef.current = ws;
 
-    const connect = () => {
-      socketRef.current = new WebSocket(`${WS_URL}?token=${token}`);
-
-      socketRef.current.onopen = () => {
-        setIsConnected(true);
-        console.log("[WS] Connected");
-      };
-
-      socketRef.current.onclose = () => {
-        setIsConnected(false);
-        console.log("[WS] Disconnected");
-        reconnectTimeoutRef.current = setTimeout(connect, 3000);
-      };
-
-      socketRef.current.onerror = () => {
-        socketRef.current.close();
-      };
-    };
-
-    connect();
-
-    return () => {
-      if (reconnectTimeoutRef.current) {
-        clearTimeout(reconnectTimeoutRef.current);
+    ws.onmessage = (event) => {
+      try {
+        const payload = JSON.parse(event.data);
+        onMessage?.(payload);
+      } catch {
+        // ignore bad payloads
       }
-      socketRef.current?.close();
     };
-  }, []);
 
-  return { isConnected };
+    ws.onerror = () => {};
+    ws.onclose = () => {};
+
+    return () => ws.close();
+  }, [onMessage]);
 };

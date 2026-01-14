@@ -23,6 +23,11 @@ import AdminDashboard from "./admin/pages/AdminDashboard";
 /* Driver */
 import DriverDashboard from "./driver/pages/DriverDashboard";
 
+import BecomeDriver from "./user/pages/BecomeDriver";
+import AdminDrivers from "./admin/pages/AdminDrivers";
+
+
+
 function App() {
   return (
     <Routes>
@@ -36,6 +41,8 @@ function App() {
         <Route path="book-ride" element={<BookRide />} />
         <Route path="ride-summary" element={<RideSummary />} />
         <Route path="ride-success" element={<RideSuccess />} />
+        <Route path="/admin/drivers" element={<AdminDrivers />} />
+
 
         {/* ================= USER ================= */}
         <Route
@@ -78,6 +85,16 @@ function App() {
           </ProtectedRoute>
         }
       />
+
+      <Route
+  path="/become-driver"
+  element={
+    <ProtectedRoute allowedRoles={["user"]}>
+      <BecomeDriver />
+    </ProtectedRoute>
+  }
+/>
+
     </Routes>
   );
 }

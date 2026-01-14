@@ -2,11 +2,11 @@ from fastapi import APIRouter, Depends
 from app.api.dependencies import get_current_admin
 
 router = APIRouter(
-    prefix="/admin",
+    prefix="/health",
     tags=["Admin"]
 )
 
-@router.get("/health")
+@router.get("")
 def admin_health(
     admin = Depends(get_current_admin)
 ):
