@@ -1,9 +1,9 @@
-function Footer() {
+const Footer = () => {
   return (
-    <footer style={{ textAlign: "center", padding: "1rem" }}>
-      <p>© RideConnect</p>
+    <footer className="footer">
+      <p>© {new Date().getFullYear()} RideConnect. All rights reserved.</p>
     </footer>
   );
-}
+};
 
 export default Footer;

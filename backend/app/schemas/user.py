@@ -19,6 +19,10 @@ class UserOut(BaseModel):
     email: EmailStr
     name: Optional[str] = None
     phone: Optional[str] = None
+
+    role: str                          # ✅ ADD
+    driver_status: Optional[str] = None  # ✅ ADD
+
     is_active: bool
     created_at: datetime
 

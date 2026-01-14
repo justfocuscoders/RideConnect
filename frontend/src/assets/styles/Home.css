@@ -1,15 +1,19 @@
 /* ================= HERO SECTION ================= */
 
+
 .hero {
-  min-height: 85vh;
+  min-height: calc(92vh - 90px); /* subtract navbar */
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
+  justify-content: flex-start; /* 🔑 key fix */
   text-align: center;
-  padding: 0 20px;
+  padding-top: 64px; /* 🔧 adjust this to move text up/down */
+  padding-left: 20px;
+  padding-right: 20px;
   background: linear-gradient(135deg, #e0f2fe, #f8fafc);
-  animation: fadeIn 1.2s ease-in;
+  overflow: hidden;
+  position: relative;
 }
 
 .hero h1 {
@@ -352,16 +356,6 @@
 
 /* ================= HERO ================= */
 
-.hero {
-  position: relative;
-  min-height: 90vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  overflow: hidden;
-  background: linear-gradient(180deg, #eaf5ff, #ffffff);
-}
 
 /* Background city */
 .hero-bg {
@@ -476,4 +470,34 @@
 
 .hero {
   padding-top: 6rem;
+}
+
+.landing-page {
+  padding-top: 64px; /* navbar height */
+  background: #f3f9ff;
+}
+
+.hero-top-accent {
+  margin-top: 24px;
+  margin-bottom: 40px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: #2563eb;
+  letter-spacing: 0.5px;
+}
+
+.home-container {
+  padding-top: 64px; /* fixed navbar height */
+}
+
+/* Hero intro strip */
+.hero-intro {
+  margin-top: 24px;
+  margin-bottom: 32px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: #2563eb;
+  letter-spacing: 0.4px;
 }

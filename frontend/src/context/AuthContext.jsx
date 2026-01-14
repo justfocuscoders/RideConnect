@@ -1,5 +1,17 @@
-import { createContext, useContext, useEffect, useRef, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import api from "../services/api";
+import {
+  getActiveMode,
+  setActiveMode,
+  forcePassengerMode,
+  MODES,
+} from "../utils/mode";
 
 const AuthContext = createContext(null);
 
@@ -16,6 +28,9 @@ export const AuthProvider = ({ children }) => {
   );
   const [loading, setLoading] = useState(true);
 
+  // 🔹 Active Mode State
+  const [activeMode, setActiveModeState] = useState(MODES.PASSENGER);
+
   const logoutTimerRef = useRef(null);
 
   const logout = () => {
@@ -25,44 +40,44 @@ export const AuthProvider = ({ children }) => {
 
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+    forcePassengerMode();
+
     setToken(null);
     setUser(null);
+    setActiveModeState(MODES.PASSENGER);
     setLoading(false);
   };
 
   const login = async (email, password) => {
-  const res = await api.post("/auth/login", { email, password });
+    const res = await api.post("/auth/login", { email, password });
 
-  localStorage.setItem("token", res.data.access_token);
-  localStorage.setItem("user", JSON.stringify(res.data.user));
+    localStorage.setItem("token", res.data.access_token);
+    localStorage.setItem("user", JSON.stringify(res.data.user));
 
-  setToken(res.data.access_token);
-  setUser(res.data.user);
-  setLoading(false); // ✅ ADD THIS
+    setToken(res.data.access_token);
+    setUser(res.data.user);
+    setLoading(false);
 
-  return res.data.user;
-};
-
+    return res.data.user;
+  };
 
   const refreshUser = async () => {
-  try {
-    const res = await api.get("/users/me");
+    try {
+      const res = await api.get("/users/me");
 
-    setUser((prev) => ({
-      ...prev,
-      ...res.data,
-      role: res.data.role ?? prev?.role,
-    }));
-  } catch (err) {
-    console.warn("refreshUser failed — keeping session alive", err);
-    // ❌ DO NOT logout here
-  } finally {
-    setLoading(false);
-  }
-};
+      setUser((prev) => ({
+        ...prev,
+        ...res.data,
+        role: res.data.role ?? prev?.role,
+      }));
+    } catch (err) {
+      console.warn("refreshUser failed — keeping session alive", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-
-
+  // 🔹 Token lifecycle
   useEffect(() => {
     if (!token) {
       setLoading(false);
@@ -79,7 +94,6 @@ export const AuthProvider = ({ children }) => {
       }
 
       logoutTimerRef.current = setTimeout(logout, remainingTime);
-
       refreshUser();
     } catch {
       logout();
@@ -92,23 +106,70 @@ export const AuthProvider = ({ children }) => {
     };
   }, [token]);
 
-  return (
-  <AuthContext.Provider
-    value={{
-      token,
-      user,
-      loading,
-      isAuthenticated: !!token,
-      login,
-      logout,
-      refreshUser,
-      setUser,
-    }}
-  >
-    {children}
-  </AuthContext.Provider>
-);
+  // 🔹 Restore & Validate Mode after user loads
+  useEffect(() => {
+    if (!user) return;
 
+    const storedMode = getActiveMode();
+
+    // Admin untouched
+    if (user.role === "admin") {
+      forcePassengerMode();
+      setActiveModeState(MODES.PASSENGER);
+      return;
+    }
+
+    // Non-driver
+    if (user.role !== "driver") {
+      forcePassengerMode();
+      setActiveModeState(MODES.PASSENGER);
+      return;
+    }
+
+    // Pending / unverified driver
+    if (user.driver_status !== "verified") {
+      forcePassengerMode();
+      setActiveModeState(MODES.PASSENGER);
+      return;
+    }
+
+    // Verified driver
+    setActiveModeState(storedMode);
+  }, [user]);
+
+  // 🔹 Manual mode switch (controlled)
+  const switchMode = (mode) => {
+    if (mode === MODES.DRIVER) {
+      if (
+        user?.role !== "driver" ||
+        user?.driver_status !== "verified"
+      ) {
+        return;
+      }
+    }
+
+    setActiveMode(mode);
+    setActiveModeState(mode);
+  };
+
+  return (
+    <AuthContext.Provider
+      value={{
+        token,
+        user,
+        loading,
+        isAuthenticated: !!token,
+        activeMode,
+        switchMode,
+        login,
+        logout,
+        refreshUser,
+        setUser,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
 export const useAuth = () => useContext(AuthContext);

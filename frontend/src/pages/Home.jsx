@@ -5,7 +5,7 @@ import { initScrollReveal } from "../utils/scrollReveal";
 
 import car from "../assets/images/car.svg";
 import bike from "../assets/images/bike.svg";
-import Navbar from "../components/Navbar";
+
 
 export default function Home() {
   useEffect(() => {
@@ -14,8 +14,7 @@ export default function Home() {
 
   return (
     <>
-      <Navbar />
-
+      
       <div className="home-container">
         {/* ================= HERO ================= */}
         <section className="hero reveal">
